@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SMA — Sistema de Monitoreo Académico · UDES</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blue:#1A3A7A;--blue2:#1A5DC4;--blue3:#0D2461;--blue-pale:#EBF2FF;--blue-light:#D5E3FF;
+  --white:#fff;--grey-50:#F5F7FA;--grey-100:#EBF0FA;--grey-200:#D5E0F5;--border:#D5E0F5;
+  --red:#E53935;--green:#2E7D32;--amber:#F57F17;--orange:#E65100;
+  --muted:#5A6E96;--ink:#0D2461;
+  --sh-sm:0 2px 8px rgba(0,0,0,.07);--sh-md:0 6px 24px rgba(0,0,0,.10);--sh-lg:0 16px 48px rgba(0,0,0,.16);
+}
+html,body{height:100%;font-family:"DM Sans",sans-serif;color:var(--ink);background:var(--grey-50);}
+.screen{display:none;} .screen.on{display:block;}
+
+/* ══ MOODLE-STYLE TOPBAR ══ */
+.top-nav{height:60px;background:var(--white);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:0;box-shadow:var(--sh-sm);position:sticky;top:0;z-index:50;}
+.tn-logo{display:flex;align-items:center;gap:10px;margin-right:24px;}
+.tn-logo img{height:42px;object-fit:contain;}
+.tn-brand{font-size:12px;font-weight:700;color:var(--blue);line-height:1.2;}
+.tn-sep{width:1px;height:30px;background:var(--border);margin:0 16px;}
+.tn-links{display:flex;gap:2px;flex:1;}
+.tn-link{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;color:var(--muted);
+  cursor:pointer;border:none;background:none;font-family:"DM Sans",sans-serif;transition:all .15s;}
+.tn-link:hover{background:var(--grey-50);color:var(--ink);}
+.tn-link.act{color:var(--blue2);font-weight:700;}
+.tn-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.tn-badge{position:relative;}
+.tn-badge-icon{width:36px;height:36px;border-radius:50%;background:var(--grey-50);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;transition:all .15s;}
+.tn-badge-icon:hover{background:var(--blue-pale);}
+.tn-badge-count{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;
+  font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px;}
+.tn-user-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:800;color:#fff;cursor:pointer;}
+
+/* ══ BLUE SECONDARY NAV ══ */
+.sec-nav{height:44px;background:var(--blue);display:flex;align-items:center;padding:0 20px;gap:4px;position:sticky;top:60px;z-index:49;}
+.sn-link{padding:6px 16px;border-radius:6px;font-size:13px;font-weight:700;color:rgba(255,255,255,.7);
+  cursor:pointer;border:none;background:none;font-family:"DM Sans",sans-serif;
+  transition:all .15s;border-bottom:3px solid transparent;border-radius:0;padding:10px 16px;}
+.sn-link:hover{color:#fff;background:rgba(255,255,255,.08);}
+.sn-link.act{color:#fff;border-bottom-color:rgba(255,255,255,.9);}
+.sn-right{margin-left:auto;display:flex;gap:6px;}
+.sn-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;
+  font-family:"DM Sans",sans-serif;border:1.5px solid rgba(255,255,255,.4);
+  background:rgba(255,255,255,.1);color:#fff;transition:all .15s;}
+.sn-btn:hover{background:rgba(255,255,255,.2);}
+
+/* ══ LOGIN ══ */
+#s-login{min-height:100vh;background:linear-gradient(160deg,#fff 0%,#EBF2FF 55%,#D5E5FF 100%);}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 60px);padding:30px;}
+.lcard{width:460px;background:#fff;border:1px solid var(--border);border-radius:20px;
+  padding:40px 36px;box-shadow:var(--sh-lg);}
+.lcard-logo{display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.lcard-logo img{height:80px;object-fit:contain;}
+.lcard-title{font-family:"DM Serif Display",serif;font-size:20px;color:var(--blue);
+  text-align:center;margin-bottom:4px;}
+.lcard-sub{font-size:11px;color:var(--muted);text-align:center;margin-bottom:26px;letter-spacing:.3px;}
+.lfield{margin-bottom:14px;}
+.lfield label{display:block;font-size:10px;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;}
+.lfield select,.lfield input{width:100%;border:1.5px solid var(--border);border-radius:10px;
+  padding:10px 13px;font-family:"DM Sans",sans-serif;font-size:13px;color:var(--ink);
+  outline:none;background:#fff;transition:border .15s;}
+.lfield select:focus,.lfield input:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(26,93,196,.1);}
+.lbtn{width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:10px;
+  font-family:"DM Sans",sans-serif;font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .2s;margin-top:4px;}
+.lbtn:hover{background:var(--blue2);transform:translateY(-1px);}
+.lerr{font-size:11px;color:var(--red);text-align:center;min-height:18px;margin-top:4px;}
+.ltut{width:100%;text-align:center;background:none;border:1.5px solid var(--blue);
+  color:var(--blue);border-radius:10px;padding:9px;font-family:"DM Sans",sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;margin-top:10px;transition:all .2s;}
+.ltut:hover{background:var(--blue-pale);}
+
+/* ══ CONTENT AREA ══ */
+.content{padding:28px 32px;max-width:1300px;margin:0 auto;}
+.page-title{font-family:"DM Serif Display",serif;font-size:26px;color:var(--ink);margin-bottom:6px;}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+/* ══ COURSE GRID (Moodle style) ══ */
+.course-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.course-card{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--border);
+  box-shadow:var(--sh-sm);cursor:pointer;transition:all .2s;}
+.course-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md);border-color:var(--blue2);}
+.cc-banner{height:140px;position:relative;overflow:hidden;}
+.cc-banner-bg{width:100%;height:100%;background:linear-gradient(135deg,#5B9BD5 0%,#1A5DC4 100%);
+  display:flex;align-items:center;justify-content:center;}
+.cc-dept{position:absolute;top:10px;left:10px;background:rgba(26,58,122,.75);color:#fff;
+  font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;backdrop-filter:blur(4px);}
+.cc-pattern{position:absolute;inset:0;opacity:.15;}
+.cc-body{padding:14px 16px 16px;}
+.cc-name{font-size:13px;font-weight:700;color:var(--blue2);margin-bottom:6px;line-height:1.35;}
+.cc-progress{height:5px;background:var(--grey-100);border-radius:4px;overflow:hidden;margin-bottom:4px;}
+.cc-pbar{height:100%;background:var(--blue2);border-radius:4px;transition:width .3s;}
+.cc-pct{font-size:10px;color:var(--muted);}
+.cc-meta{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* ══ WEEKS GRID (Moodle Aula Extendida style) ══ */
+.breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:13px;}
+.bc-link{color:var(--blue2);cursor:pointer;font-weight:600;}
+.bc-link:hover{text-decoration:underline;}
+.bc-sep{color:var(--muted);}
+.bc-cur{font-weight:700;color:var(--ink);}
+
+.weeks-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+.week-card{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--border);
+  box-shadow:var(--sh-sm);cursor:pointer;transition:all .2s;position:relative;}
+.week-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md);border-color:var(--blue2);}
+.week-card.has-acts{border-top:3px solid var(--blue2);}
+.week-card.has-abs{border-top:3px solid var(--red);}
+.week-card.is-parcial{border-top:3px solid var(--amber);}
+.wc-banner{height:110px;position:relative;overflow:hidden;}
+.wc-banner-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.wc-label{position:absolute;bottom:0;left:0;right:0;background:rgba(26,58,122,.55);
+  padding:6px 10px;backdrop-filter:blur(2px);}
+.wc-label-text{font-size:13px;font-weight:800;color:#fff;}
+.wc-badge{position:absolute;top:7px;right:7px;font-size:9px;font-weight:800;
+  padding:2px 7px;border-radius:8px;}
+.wc-badge.parcial{background:#FFF8E1;color:#E65100;}
+.wc-badge.absent{background:#FCE4EC;color:#C62828;}
+.wc-badge.acts{background:#EBF2FF;color:var(--blue);}
+.wc-body{padding:10px 12px;}
+.wc-info{font-size:10px;color:var(--muted);}
+
+/* Week patterns */
+.pat-0{background:linear-gradient(135deg,#74B4E8 0%,#4A90D9 100%);}
+.pat-1{background:linear-gradient(135deg,#5BA8E0 0%,#3A82CC 100%);}
+.pat-2{background:linear-gradient(135deg,#6BBAE8 0%,#4498D4 100%);}
+.pat-3{background:linear-gradient(135deg,#4EA4E0 0%,#3680C8 100%);}
+.pat-4{background:linear-gradient(135deg,#7EC0EC 0%,#5098DC 100%);}
+.pat-5{background:linear-gradient(135deg,#62B0E4 0%,#408AC8 100%);}
+.pat-6{background:linear-gradient(135deg,#55A8DC 0%,#3872C0 100%);}
+.pat-7{background:linear-gradient(135deg,#79BCEB 0%,#4A94D8 100%);}
+.pat-8{background:linear-gradient(135deg,#68B8E8 0%,#3E8ACE 100%);}
+.pat-9{background:linear-gradient(135deg,#5BADE0 0%,#3678C4 100%);}
+.pat-10{background:linear-gradient(135deg,#72B6E6 0%,#4690D0 100%);}
+.pat-11{background:linear-gradient(135deg,#4FAAE2 0%,#3580CC 100%);}
+.pat-12{background:linear-gradient(135deg,#7AC0EC 0%,#4C96DA 100%);}
+.pat-13{background:linear-gradient(135deg,#64B2E4 0%,#3E8CCE 100%);}
+.pat-14{background:linear-gradient(135deg,#57AEE2 0%,#387AC6 100%);}
+.pat-15{background:linear-gradient(135deg,#70B8E8 0%,#4892D2 100%);}
+
+/* ══ SEMANA VIEW ══ */
+.semana-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px;}
+.stab{padding:10px 22px;border:none;background:none;font-family:"DM Sans",sans-serif;
+  font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .18s;}
+.stab:hover{color:var(--ink);}
+.stab.on{color:var(--blue2);border-bottom-color:var(--blue2);font-weight:700;}
+
+/* ── Actividades panel ── */
+.stu-block{background:#fff;border:1.5px solid var(--border);border-radius:14px;
+  margin-bottom:14px;overflow:hidden;box-shadow:var(--sh-sm);}
+.sb-head{display:flex;align-items:center;gap:12px;padding:13px 18px;
+  background:var(--grey-50);border-bottom:1px solid var(--border);}
+.sb-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;}
+.sb-name{font-size:13px;font-weight:700;color:var(--ink);}
+.sb-prog{font-size:10px;color:var(--muted);}
+.sb-risk{margin-left:auto;}
+.abs-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;
+  border-radius:8px;border:1.5px solid var(--border);background:#fff;
+  font-size:11px;font-weight:700;color:var(--muted);transition:all .15s;margin-left:8px;}
+.abs-toggle.absent{background:#FCE4EC;border-color:var(--red);color:#C62828;}
+.abs-toggle:hover{border-color:var(--blue2);}
+.sb-acts{padding:12px 18px;}
+.act-row{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--grey-100);}
+.act-row:last-child{border-bottom:none;}
+.act-num{font-size:10px;font-weight:700;color:var(--muted);width:40px;flex-shrink:0;}
+.act-name-inp{flex:1;border:none;background:transparent;font-family:"DM Sans",sans-serif;
+  font-size:12px;font-weight:600;color:var(--ink);outline:none;padding:3px 6px;border-radius:5px;}
+.act-name-inp:focus{background:var(--grey-50);}
+.ginp{width:65px;border:1.5px solid var(--border);border-radius:8px;padding:5px 8px;
+  font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;text-align:center;
+  outline:none;transition:all .15s;color:var(--ink);background:#fff;}
+.ginp:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(26,93,196,.1);}
+.ginp.gh{color:#1B5E20;border-color:#A5D6A7;background:#F1F8F0;}
+.ginp.gm{color:#E65100;border-color:#FFCC80;background:#FFFDE7;}
+.ginp.gl{color:#C62828;border-color:#EF9A9A;background:#FFF5F5;}
+.del-btn{background:none;border:none;color:#C8D5DB;cursor:pointer;font-size:18px;
+  padding:2px 5px;transition:color .15s;}
+.del-btn:hover{color:var(--red);}
+.sb-foot{padding:8px 18px;border-top:1px solid var(--border);background:var(--grey-50);}
+.add-act-btn{background:none;border:1.5px dashed var(--blue2);color:var(--blue2);
+  border-radius:8px;padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;
+  transition:all .15s;font-family:"DM Sans",sans-serif;}
+.add-act-btn:hover{background:var(--blue-pale);}
+
+/* Parcial block */
+.parcial-block{background:#fff;border:1.5px solid var(--border);border-radius:14px;
+  margin-bottom:14px;overflow:hidden;box-shadow:var(--sh-sm);}
+.parcial-head{padding:12px 18px;background:linear-gradient(90deg,#FFF8E1,#FFF3CD);
+  border-bottom:1px solid #FFE082;display:flex;align-items:center;gap:10px;}
+.parcial-title{font-size:13px;font-weight:800;color:#E65100;}
+.parcial-table{width:100%;border-collapse:collapse;}
+.parcial-table th{padding:9px 18px;font-size:10px;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.5px;background:var(--grey-50);text-align:left;
+  border-bottom:1px solid var(--border);}
+.parcial-table td{padding:9px 18px;font-size:12px;border-bottom:1px solid var(--grey-100);vertical-align:middle;}
+.parcial-table tr:last-child td{border-bottom:none;}
+
+/* ── Calificaciones panel ── */
+.cal-wrap{background:#fff;border:1.5px solid var(--border);border-radius:14px;
+  overflow:hidden;box-shadow:var(--sh-sm);}
+.cal-head{padding:10px 16px;font-size:10px;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px;background:var(--grey-50);
+  border-bottom:1px solid var(--border);}
+.cal-tbl{width:100%;border-collapse:collapse;}
+.cal-tbl th{padding:10px 16px;font-size:10px;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.5px;background:var(--grey-50);text-align:left;
+  border-bottom:1px solid var(--border);}
+.cal-tbl td{padding:10px 16px;font-size:12px;border-bottom:1px solid var(--grey-100);vertical-align:middle;}
+.cal-tbl tr:last-child td{border-bottom:none;}
+.cal-tbl tr:hover td{background:var(--grey-50);}
+
+/* Pills */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;
+  padding:3px 9px;border-radius:10px;}
+.pill.none{background:#E8F5E9;color:#2E7D32;}
+.pill.low{background:#FFF8E1;color:#E65100;}
+.pill.high{background:#FCE4EC;color:#B71C1C;}
+.pill.absent{background:#EDE7F6;color:#4527A0;}
+.chip{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:800;}
+.chip.pass{background:#E8F5E9;color:#2E7D32;} .chip.fail{background:#FCE4EC;color:#B71C1C;}
+.chip.pend{background:#F5F5F5;color:#9E9E9E;}
+
+/* ══ BUZÓN ══ */
+.buzon-wrap{display:flex;gap:16px;height:calc(100vh - 165px);}
+.buzon-list{width:300px;flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+.buzon-dp{flex:1;background:#fff;border:1.5px solid var(--border);border-radius:14px;
+  box-shadow:var(--sh-md);display:flex;flex-direction:column;overflow:hidden;}
+.mcard{background:#fff;border:1.5px solid var(--border);border-radius:12px;
+  padding:11px 13px;cursor:pointer;transition:all .18s;}
+.mcard:hover{border-color:#BEE0EA;box-shadow:var(--sh-sm);}
+.mcard.sel{border-color:var(--blue2);border-left:4px solid var(--blue2);}
+.mc-top{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.mcav{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.mcav.sys{background:#FCE4EC;} .mcav.prof{background:#E8F5E9;} .mcav.auto{background:#FFF3E0;}
+.mcsender{font-size:11px;font-weight:700;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mcwhen{font-size:9px;color:var(--muted);font-weight:600;}
+.mcsubj{font-size:11px;font-weight:800;color:var(--ink);margin-bottom:3px;line-height:1.35;}
+.mctag{display:inline-flex;font-size:9px;font-weight:800;padding:2px 8px;border-radius:9px;}
+.mctag.alerta{background:#FCE4EC;color:#AD1457;} .mctag.material{background:#E8F5E9;color:#2E7D32;}
+.mctag.inasistencia{background:#EDE7F6;color:#4527A0;}
+.dp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;opacity:.4;}
+.dp-ei{font-size:44px;} .dp-et{font-size:13px;font-weight:600;color:var(--muted);}
+.dp-h{padding:18px 22px 14px;border-bottom:1px solid var(--grey-100);background:var(--grey-50);}
+.dp-subj{font-family:"DM Serif Display",serif;font-size:17px;margin-bottom:10px;}
+.dp-meta{display:flex;align-items:center;gap:9px;}
+.dp-mav{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.dp-mav.sys{background:#FCE4EC;} .dp-mav.prof{background:#E8F5E9;}
+.dp-sname{font-size:12px;font-weight:700;} .dp-email{font-size:10px;color:var(--muted);}
+.dp-chip{margin-left:auto;font-size:10px;font-weight:700;color:var(--muted);background:var(--grey-100);padding:4px 10px;border-radius:8px;}
+.dp-body{flex:1;overflow-y:auto;padding:20px 24px;font-size:13px;line-height:1.75;color:#374B5A;}
+.dp-body p{margin-bottom:10px;} .dp-body b{color:var(--ink);}
+.dp-body table{width:100%;border-collapse:collapse;font-size:12px;border-radius:10px;overflow:hidden;margin:12px 0;box-shadow:0 1px 5px rgba(0,0,0,.05);}
+.dp-body table th{padding:8px 12px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--grey-50);}
+.dp-body table td{padding:8px 12px;border-bottom:1px solid var(--grey-100);}
+.hbox{border-radius:10px;padding:12px 14px;margin:11px 0;font-size:12px;line-height:1.8;border-left:3px solid;}
+.hbox.warn{background:#FFF8E1;border-color:var(--amber);} .hbox.danger{background:#FFF5F5;border-color:var(--red);}
+.hbox.ok{background:#F1F8F6;border-color:var(--green);} .hbox.info{background:#F0F9FF;border-color:var(--blue2);}
+.dp-actions{padding:12px 22px;border-top:1px solid var(--grey-100);background:var(--grey-50);
+  display:flex;gap:9px;align-items:center;}
+.btnp{padding:8px 16px;border:none;border-radius:9px;font-family:"DM Sans",sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;transition:all .18s;}
+.btnp.blue{background:var(--blue2);color:#fff;} .btnp.blue:hover{background:var(--blue3);}
+.btns{padding:7px 13px;border:1.5px solid var(--border);background:transparent;border-radius:9px;
+  font-family:"DM Sans",sans-serif;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;}
+.btns:hover{border-color:var(--blue2);color:var(--blue2);}
+.dp-tag{font-size:10px;font-weight:800;padding:4px 11px;border-radius:18px;margin-left:auto;}
+.dp-tag.alerta{background:#FCE4EC;color:#AD1457;} .dp-tag.material{background:#E8F5E9;color:#2E7D32;}
+.dp-tag.inasistencia{background:#EDE7F6;color:#4527A0;}
+
+/* ══ STUDENT VIEW ══ */
+.sv-profile{background:#fff;border:1.5px solid var(--border);border-radius:14px;
+  padding:20px 24px;margin-bottom:18px;display:flex;align-items:center;gap:16px;box-shadow:var(--sh-sm);}
+.sv-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:20px;font-weight:800;color:#fff;}
+.sv-name{font-family:"DM Serif Display",serif;font-size:17px;}
+.sv-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.sv-def{margin-left:auto;text-align:center;}
+.sv-def .v{font-size:26px;font-weight:800;}
+.sv-cortes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+.sv-c{background:#fff;border-radius:12px;border:1.5px solid var(--border);padding:16px;box-shadow:var(--sh-sm);}
+.sv-cl{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;}
+.sv-cv{font-size:22px;font-weight:800;margin-bottom:4px;}
+.sv-cw{font-size:10px;color:var(--muted);}
+.sv-acts{background:#fff;border-radius:12px;border:1.5px solid var(--border);overflow:hidden;box-shadow:var(--sh-sm);}
+.sv-ath{padding:11px 18px;background:var(--grey-50);border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+.sv-act{display:flex;align-items:center;padding:10px 18px;gap:12px;border-bottom:1px solid var(--grey-100);}
+.sv-awk{font-size:10px;font-weight:700;color:var(--muted);width:50px;}
+.sv-an{flex:1;font-size:12px;font-weight:600;}
+.sv-ag{font-size:13px;font-weight:800;}
+
+/* ══ MODAL AGENDAR ══ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
+  align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:18px;padding:28px;width:400px;box-shadow:var(--sh-lg);}
+.modal h3{font-family:"DM Serif Display",serif;font-size:18px;margin-bottom:4px;}
+.modal .msub{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:10px;font-weight:800;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.fg input,.fg select,.fg textarea{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;font-family:"DM Sans",sans-serif;font-size:13px;outline:none;transition:border .15s;color:var(--ink);}
+.fg input:focus,.fg select:focus{border-color:var(--blue2);}
+.fg textarea{resize:vertical;min-height:65px;}
+.mact{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+
+/* ══ TUTORIAL MODAL ══ */
+.tut-bg{display:none;position:fixed;inset:0;background:rgba(13,36,97,.5);z-index:200;align-items:center;justify-content:center;}
+.tut-bg.open{display:flex;}
+.tut-box{background:#fff;border-radius:20px;width:640px;max-height:85vh;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.tut-hd{background:var(--blue);padding:22px 28px;color:#fff;}
+.tut-hd h2{font-family:"DM Serif Display",serif;font-size:18px;margin-bottom:3px;}
+.tut-hd p{font-size:11px;opacity:.75;}
+.tut-bd{padding:22px 28px;overflow-y:auto;flex:1;}
+.tut-sec{margin-bottom:18px;}
+.tut-sec h3{font-size:12px;font-weight:800;color:var(--blue);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:9px;padding-bottom:5px;border-bottom:2px solid var(--grey-100);}
+.tut-sec p{font-size:12.5px;color:#374B5A;line-height:1.7;margin-bottom:6px;}
+.tut-tbl{width:100%;border-collapse:collapse;margin-top:6px;}
+.tut-tbl th{background:var(--grey-50);padding:7px 12px;font-size:10px;font-weight:800;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.5px;text-align:left;
+  border-bottom:1px solid var(--border);}
+.tut-tbl td{padding:8px 12px;font-size:12px;border-bottom:1px solid var(--grey-100);}
+.trole{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:800;}
+.trole.doc{background:#E3F2FD;color:#1565C0;} .trole.stu{background:#E8F5E9;color:#2E7D32;}
+.algo-step{display:flex;gap:12px;margin-bottom:10px;}
+.algo-n{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;
+  font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.tut-ft{padding:12px 28px;border-top:1px solid var(--grey-100);background:var(--grey-50);display:flex;justify-content:flex-end;}
+.tut-close{padding:8px 20px;background:var(--blue);color:#fff;border:none;border-radius:9px;
+  font-family:"DM Sans",sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:22px;right:22px;z-index:300;background:#1E2D3A;color:#fff;
+  padding:11px 18px;border-radius:11px;font-size:12px;font-weight:600;box-shadow:var(--sh-lg);
+  display:flex;align-items:center;gap:8px;transform:translateY(60px);opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);}
+.toast.show{transform:translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="s-login" class="screen on">
+  <div class="top-nav" style="position:relative;">
+    <div class="tn-logo">
+      <img src=escudo-udes.jpg>
+    </div>
+    <span class="tn-brand">Universidad de Santander · UDES<br><span style="font-size:10px;font-weight:400;color:var(--muted);">Sistema de Monitoreo Académico</span></span>
+  </div>
+  <div class="login-wrap">
+    <div class="lcard">
+      <div class="lcard-logo"><img src=escudo-udes.jpg></div>
+      <div class="lcard-title">Aula Extendida — SMA</div>
+      <div class="lcard-sub">Sistema de Monitoreo Académico · Universidad de Santander</div>
+      <div class="lfield">
+        <label>Seleccionar usuario</label>
+        <select id="l-combo" onchange="fillCredentials()">
+          <option value="">— Seleccione un usuario —</option>
+          <optgroup label="👨‍🏫 Docentes">
+            <option value="mendoza">Dr. Carlos Mendoza — Anatomía Humana</option>
+          </optgroup>
+          <optgroup label="👩‍🎓 Estudiantes">
+            <option value="laura">Laura Martínez (Medicina M01)</option>
+            <option value="andres">Andrés Vargas (Medicina M02)</option>
+            <option value="sofia">Sofía Herrera (Medicina M03)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="lfield">
+        <label>Usuario</label>
+        <input type="text" id="l-user" placeholder="Se llenará automáticamente" readonly>
+      </div>
+      <div class="lfield">
+        <label>Contraseña</label>
+        <input type="password" id="l-pass" placeholder="Se llenará automáticamente" readonly>
+      </div>
+      <div class="lerr" id="l-err"></div>
+      <button class="lbtn" onclick="doLogin()">Iniciar sesión</button>
+      <button class="ltut" onclick="openTutorial()">📖 Tutorial y funcionamiento del SMA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP DOCENTE ══ -->
+<div id="s-app" class="screen">
+  <!-- Top nav -->
+  <div class="top-nav">
+    <div class="tn-logo" style="cursor:pointer;" onclick="goHome()">
+      <img src=escudo-udes.jpg>
+    </div>
+    <span class="tn-brand" style="cursor:pointer;" onclick="goHome()">Universidad de Santander<br><span style="font-size:10px;font-weight:400;">Aula Extendida</span></span>
+    <div class="tn-links" id="top-links">
+      <button class="tn-link act" onclick="goHome()">Página Principal</button>
+      <button class="tn-link">Área personal</button>
+      <button class="tn-link" onclick="goMisCursos()">Mis cursos</button>
+      <button class="tn-link">Calendario</button>
+    </div>
+    <div class="tn-right">
+      <div class="tn-badge">
+        <div class="tn-badge-icon" onclick="goMailDoc()">🔔</div>
+        <span class="tn-badge-count" id="tb-badge" style="display:none">0</span>
+      </div>
+      <div class="tn-user-av" id="tb-av" style="cursor:pointer;"></div>
+      <button class="tn-link" onclick="goLogin()">Salir</button>
+    </div>
+  </div>
+
+  <!-- Secondary nav (changes by view) -->
+  <div class="sec-nav" id="sec-nav-doc">
+    <button class="sn-link act" id="sn-curso" onclick="secNavDoc('curso')">Curso</button>
+    <button class="sn-link" id="sn-partic" onclick="secNavDoc('partic')">Participantes</button>
+    <button class="sn-link" id="sn-califs" onclick="secNavDoc('califs')">Calificaciones</button>
+    <button class="sn-link" id="sn-buzon" onclick="secNavDoc('buzon')">📧 Buzón<span class="tn-badge-count" id="sn-badge" style="display:none;position:relative;top:-1px;margin-left:4px;">0</span></button>
+    <div class="sn-right">
+      <button class="sn-btn" onclick="openTutorial()">📖 Tutorial</button>
+
+    </div>
+  </div>
+
+  <!-- Content panels -->
+  <div id="doc-home" style="display:none;"><!-- Mis Cursos principal --></div>
+  <div id="doc-curso" style="display:none;"><!-- Semanas grid --></div>
+  <div id="doc-semana" style="display:none;"><!-- Semana detalle --></div>
+  <div id="doc-califs" style="display:none;"><!-- Calificaciones generales --></div>
+  <div id="doc-buzon" style="display:none;"><!-- Buzón --></div>
+  <div id="doc-partic" style="display:none;"><!-- Participantes --></div>
+</div>
+
+<!-- ══ APP ESTUDIANTE ══ -->
+<div id="s-stu" class="screen">
+  <div class="top-nav">
+    <div class="tn-logo"><img src=escudo-udes.jpg></div>
+    <span class="tn-brand">Universidad de Santander<br><span style="font-size:10px;font-weight:400;">Aula Extendida</span></span>
+    <div class="tn-links">
+      <button class="tn-link act">Página Principal</button>
+      <button class="tn-link">Área personal</button>
+      <button class="tn-link">Mis cursos</button>
+    </div>
+    <div class="tn-right">
+      <div class="tn-badge">
+        <div class="tn-badge-icon" onclick="goMailStu()">🔔</div>
+        <span class="tn-badge-count" id="stu-badge" style="display:none">0</span>
+      </div>
+      <div class="tn-user-av" id="stu-av"></div>
+      <button class="tn-link" onclick="goLogin()">Salir</button>
+    </div>
+  </div>
+  <div class="sec-nav">
+    <button class="sn-link act" id="sn-stu-notas" onclick="stuTab('notas',this)">Mis Calificaciones</button>
+    <button class="sn-link" id="sn-stu-buzon" onclick="stuTab('buzon',this)">📧 Mi Buzón<span class="tn-badge-count" id="stu-badge2" style="display:none;position:relative;top:-1px;margin-left:4px;">0</span></button>
+    <div class="sn-right">
+      <button class="sn-btn" onclick="openTutorial()">📖 Tutorial</button>
+
+    </div>
+  </div>
+  <div id="stu-notas-panel" style="display:none;"></div>
+  <div id="stu-buzon-panel" style="display:none;"></div>
+</div>
+
+<!-- BD MODAL -->
+<div class="modal-bg" id="bd-modal" style="z-index:200;">
+  <div class="modal" style="max-width:900px;width:95vw;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;padding:0;border-radius:18px;">
+    <div style="display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--grey-50);">
+      <span style="font-size:20px;">🗄️</span>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--ink);">Base de Datos — Rendimiento Estudiantil</div>
+        <div style="font-size:11px;color:var(--muted);">Vista general de calificaciones y distribución</div>
+      </div>
+      <button onclick="closeBD()" style="margin-left:auto;background:var(--grey-100);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink);">✕ Cerrar</button>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Left: Filters + Pie -->
+      <div style="width:230px;flex-shrink:0;padding:18px 16px;border-right:1px solid var(--border);overflow-y:auto;background:#fff;">
+        <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;">CARRERA</div>
+        <select id="bd-carrera" onchange="renderBD()" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink);margin-bottom:14px;outline:none;">
+          <option value="all">Todas las carreras</option>
+          <option value="med">Medicina</option>
+        </select>
+        <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;">SEMESTRE</div>
+        <select id="bd-sem" onchange="renderBD()" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink);margin-bottom:14px;outline:none;">
+          <option value="all">Todos</option>
+          <option value="1">Semestre 1</option>
+        </select>
+        <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;">MATERIA</div>
+        <select id="bd-mat" onchange="renderBD()" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink);margin-bottom:18px;outline:none;">
+          <option value="all">Todas las materias</option>
+          <option value="anat">Anatomía Humana</option>
+        </select>
+        <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;">DISTRIBUCIÓN DE NOTAS</div>
+        <canvas id="bd-pie" width="200" height="200" style="display:block;margin:0 auto 12px;"></canvas>
+        <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:10px;">Clic en un sector para filtrar</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:11px;">
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:12px;height:12px;border-radius:3px;background:#2E7D32;flex-shrink:0;"></div><span>Alto (≥4.0)</span><span id="bd-cnt-alto" style="margin-left:auto;color:var(--blue2);font-weight:700;">0</span></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:12px;height:12px;border-radius:3px;background:#F57F17;flex-shrink:0;"></div><span>Aprobado (3–4)</span><span id="bd-cnt-aprob" style="margin-left:auto;color:var(--blue2);font-weight:700;">0</span></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:12px;height:12px;border-radius:3px;background:#E53935;flex-shrink:0;"></div><span>Reprobado (&lt;3)</span><span id="bd-cnt-rep" style="margin-left:auto;color:var(--blue2);font-weight:700;">0</span></div>
+          <div style="display:flex;align-items:center;gap:7px;"><div style="width:12px;height:12px;border-radius:3px;background:#bbb;flex-shrink:0;"></div><span>Sin datos</span><span id="bd-cnt-nd" style="margin-left:auto;color:var(--blue2);font-weight:700;">0</span></div>
+        </div>
+        <button onclick="renderBD()" style="margin-top:16px;width:100%;background:var(--blue2);color:#fff;border:none;border-radius:8px;padding:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">↺ Restablecer</button>
+      </div>
+      <!-- Right: Student list -->
+      <div style="flex:1;overflow-y:auto;background:#fff;">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--grey-100);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:12px;font-weight:700;color:var(--ink);">TODOS LOS ESTUDIANTES</span>
+          <span id="bd-count" style="font-size:11px;color:var(--muted);"></span>
+        </div>
+        <div id="bd-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AGENDAR -->
+<div class="modal-bg" id="modal-ag">
+  <div class="modal">
+    <h3>Agendar acompañamiento</h3>
+    <p class="msub">El estudiante recibirá confirmación por correo.</p>
+    <div class="fg"><label>Estudiante</label><input id="ag-stu" readonly></div>
+    <div class="fg">
+  <label>Fecha</label>
+  <input type="date" id="ag-date" oninput="document.getElementById('ag-err').textContent='';this.style.borderColor='';">
+  <div id="ag-err" style="font-size:11px;color:var(--red);margin-top:4px;min-height:16px;"></div>
+</div>
+    <div class="fg"><label>Modalidad</label>
+      <select id="ag-mode">
+        <option>Presencial — Laboratorio B-101</option>
+        <option>Virtual — Microsoft Teams</option>
+        <option>Virtual — Google Meet</option>
+      </select>
+    </div>
+    <div class="fg"><label>Mensaje adicional</label><textarea id="ag-msg" placeholder="¿Tienes dudas específicas?"></textarea></div>
+    <div class="mact">
+      <button class="btns" onclick="closeAg()">Cancelar</button>
+      <button class="btnp blue" onclick="confirmAg()">Confirmar cita</button>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div class="tut-bg" id="tut-modal">
+  <div class="tut-box">
+    <div class="tut-hd"><h2>📖 Tutorial — SMA · UDES</h2><p>Sistema de Monitoreo Académico Temprano · Universidad de Santander</p></div>
+    <div class="tut-bd">
+      <div class="tut-sec">
+        <h3>¿Qué es el SMA?</h3>
+        <p>El <b>Sistema de Monitoreo Académico</b> es un prototipo que implementa un algoritmo de <b>detección temprana de riesgo académico</b>. Permite identificar estudiantes en riesgo antes de que pierdan el semestre, activando alertas automáticas y enviando material de apoyo.</p>
+      </div>
+      <div class="tut-sec">
+        <h3>Algoritmo de monitoreo</h3>
+        <div class="algo-step"><div class="algo-n">1</div><div><b>Registro continuo:</b> El docente registra asistencia y notas por semana en el Aula Extendida (3 cortes: 30% / 30% / 40%).</div></div>
+        <div class="algo-step"><div class="algo-n">2</div><div><b>Cálculo automático:</b> Cada corte = promedio actividades (40%) + parcial (60%).</div></div>
+        <div class="algo-step"><div class="algo-n">3</div><div><b>Clasificación de riesgo:</b> Sin riesgo / Riesgo leve / Riesgo alto / Inasistencias críticas.</div></div>
+        <div class="algo-step"><div class="algo-n">4</div><div><b>Alertas automáticas:</b> Al detectar riesgo, se generan mensajes en el Buzón con recomendaciones y material de apoyo.</div></div>
+      </div>
+      <div class="tut-sec">
+        <h3>Credenciales del prototipo</h3>
+        <table class="tut-tbl">
+          <thead><tr><th>Rol</th><th>Nombre</th><th>Caso</th></thead>
+          <tbody>
+            <tr><td><span class="trole doc">Docente</span></td><td>Dr. Carlos Mendoza</td><td><b>Recibe notificaciones de estudiantes que van mal o tienen riesgo de tener bajo Rendimiento</b></td></tr>
+            <tr><td><span class="trole stu">Estudiante</span></td><td>Laura Martínez</td><td><b>Estudiante con notas buenas pero con varias inasistencias</b></td></tr>
+            <tr><td><span class="trole stu">Estudiante</span></td><td>Andrés Vargas</td><td><b>Estudiante con notas bajas</b></td></tr>
+            <tr><td><span class="trole stu">Estudiante</span></td><td>Sofía Herrera</td><td><b>Estudiante que tenia notas altas pero empezo a presentar un rendimiento bajo con posibilidades de perder la materia</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="tut-ft"><button class="tut-close" onclick="closeTutorial()">Entendido ✓</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Cita agendada correctamente</div>
+
+<script>
+// ══ DATA ══════════════════════════════════════════════════════════
+var ACCS = {
+  med:{name:'Dr. Carlos Mendoza',short:'Dr. Mendoza',av:'CM',course:'Anatomía Humana',prog:'Medicina',dept:'Medicina_CU',col:'#C62828',
+       students:[{id:'M01',name:'Laura Martínez',av:'LM',col:'#1A5DC4'},
+                 {id:'M02',name:'Andrés Vargas',  av:'AV',col:'#2E7D32'},
+                 {id:'M03',name:'Sofía Herrera',  av:'SH',col:'#6A1B9A'}]}
+};
+var CORTES = [
+  {id:'c1',lbl:'Primer Corte', weeks:[1,2,3,4],  parcial:5,  w:.3},
+  {id:'c2',lbl:'Segundo Corte',weeks:[6,7,8,9],  parcial:10, w:.3},
+  {id:'c3',lbl:'Tercer Corte', weeks:[11,12,13,14],parcial:15,w:.4}
+];
+var CREDS = {
+  mendoza:{pass:'med123',type:'doc',key:'med'},
+  laura:  {pass:'lm2024',type:'stu',sid:'M01'},
+  andres: {pass:'av2024',type:'stu',sid:'M02'},
+  sofia:  {pass:'sh2024',type:'stu',sid:'M03'}
+};
+
+// ── State ──
+var accKey=null,curWeek=null,isStu=false,stuId=null;
+var selMail=-1,stuSelMail=-1,bdFilter='all';
+var DATA={}, INBOX={};
+var chNotas=null,chBar=null;
+var docView='home'; // home | curso | semana | califs | buzon
+var stuCurTab='notas';
+
+function initData(a){
+  a.students.forEach(function(st){
+    if(DATA[st.id]) return;
+    DATA[st.id]={weeks:{},parciales:{c1:null,c2:null,c3:null}};
+    for(var w=1;w<=16;w++) DATA[st.id].weeks[w]={acts:[],absent:false};
+  });
+}
+function inbox(){if(!INBOX[accKey])INBOX[accKey]=[];return INBOX[accKey];}
+var STU_INBOX = [];
+
+function stuInbox(){
+  return STU_INBOX.filter(function(m){ return m.stuId===stuId; })
+    .concat(inbox().filter(function(m){ return m.stuId===stuId && !m.docOnly; }));
+}
+
+// ══ LOGIN ═════════════════════════════════════════════════════════
+function fillCredentials(){
+  var sel=document.getElementById('l-combo').value;
+  var c=CREDS[sel];
+  if(!c){document.getElementById('l-user').value='';document.getElementById('l-pass').value='';return;}
+  document.getElementById('l-user').value=sel;
+  document.getElementById('l-pass').value=c.pass;
+}
+function doLogin(){
+  var u=document.getElementById('l-user').value.trim().toLowerCase();
+  var p=document.getElementById('l-pass').value;
+  var err=document.getElementById('l-err');
+  err.textContent='';
+  var c=CREDS[u];
+  if(!c||c.pass!==p){err.textContent='Usuario o contraseña incorrectos.';return;}
+  if(c.type==='doc') loginDoc(c.key);
+  else loginStu(c.sid);
+}
+function loginDoc(key){
+  accKey=key; isStu=false; curWeek=null;
+  var a=ACCS[key]; initData(a);
+  if(!INBOX[accKey]) INBOX[accKey]=[];
+  var av=document.getElementById('tb-av');
+  av.textContent=a.av; av.style.background=a.col;
+  document.querySelectorAll('#sec-nav-doc .sn-link').forEach(function(b){b.classList.remove('act');});
+  document.getElementById('sn-curso').classList.add('act');
+  showScreen('s-app');
+  showDocView('home');
+}
+function loginStu(sid){
+  isStu=true; stuId=sid;
+  Object.keys(ACCS).forEach(function(k){
+    ACCS[k].students.forEach(function(st){if(st.id===sid) accKey=k;});
+  });
+  if(!accKey){accKey='med';}
+  initData(ACCS[accKey]);
+  var st=getStudent(sid);
+  var av=document.getElementById('stu-av');
+  av.textContent=st.av; av.style.background=st.col;
+  document.querySelectorAll('#s-stu .sn-link').forEach(function(b){b.classList.remove('act');});
+document.getElementById('sn-stu-notas').classList.add('act');
+  showScreen('s-stu');
+  stuTabDirect('notas');
+  genAlerts();        // ← generar alertas al entrar
+  updateStuBadge();   // ← actualizar badge inmediatamente
+}
+function goLogin(){
+  accKey=null;curWeek=null;isStu=false;stuId=null;selMail=-1;stuSelMail=-1;
+  document.getElementById('l-combo').value='';
+  document.getElementById('l-user').value='';
+  document.getElementById('l-pass').value='';
+  document.getElementById('l-err').textContent='';
+  showScreen('s-login');
+}
+
+// ══ SCREEN / VIEW NAV ════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});
+  document.getElementById(id).classList.add('on');
+}
+function showDocView(v){
+  docView=v;
+  ['doc-home','doc-curso','doc-semana','doc-califs','doc-buzon','doc-partic'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('doc-'+v).style.display='block';
+  if(v==='partic') renderPartic();
+  // render
+  if(v==='home') renderHome();
+  if(v==='curso'){curWeek=null; renderCurso();}
+  if(v==='semana') renderSemana();
+  if(v==='califs') renderCalifs();
+  if(v==='buzon'){selMail=-1;renderBuzon();}
+  updateBadge();
+}
+function goHome(){showDocView('home');}
+function goMisCursos(){showDocView('home');}
+function goMailDoc(){showDocView('buzon');}
+function secNavDoc(v){
+  document.querySelectorAll('#sec-nav-doc .sn-link').forEach(function(b){b.classList.remove('act');});
+  var mapping={curso:'sn-curso',partic:'sn-partic',califs:'sn-califs',buzon:'sn-buzon'};
+  if(mapping[v]) document.getElementById(mapping[v]).classList.add('act');
+  if(v==='curso') showDocView('curso');
+  if(v==='califs') showDocView('califs');
+  if(v==='buzon') showDocView('buzon');
+  if(v==='partic') showDocView('partic');
+}
+
+// ══ HOME — MIS CURSOS ═════════════════════════════════════════════
+function renderHome(){
+  var a=ACCS[accKey];
+  var svgPat='<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="p0" width="40" height="40" patternUnits="userSpaceOnUse"><polygon points="20,0 40,20 20,40 0,20" fill="rgba(255,255,255,.08)"/></pattern></defs><rect width="100%" height="100%" fill="url(#p0)"/></svg>';
+  var h='<div class="content"><div class="page-title">Página Principal</div>'
+    +'<p style="font-size:13px;color:var(--muted);margin-bottom:24px;">Bienvenido/a, <b>'+a.name+'</b> · '+a.prog+'</p>'
+    +'<div style="font-family:\'DM Serif Display\',serif;font-size:20px;margin-bottom:16px;">Mis cursos</div>'
+    +'<div class="course-grid" style="grid-template-columns:repeat(1,360px);">'
+    +'<div class="course-card" onclick="showDocView(\'curso\')">'
+    +'<div class="cc-banner"><div class="cc-banner-bg">'+svgPat+'</div>'
+    +'<div class="cc-dept">'+a.dept+'</div></div>'
+    +'<div class="cc-body">'
+    +'<div class="cc-name">'+a.course.toUpperCase()+' — '+a.prog.toUpperCase()+'</div>'
+    +'<div class="cc-progress"><div class="cc-pbar" style="width:22%"></div></div>'
+    +'<div class="cc-pct">22% completado</div>'
+    +'</div></div></div>'
+    +'<div style="margin-top:24px;">'
+    +'<button onclick="openBD()" style="background:linear-gradient(135deg,#5B2D8E,#7B4CB0);color:#fff;border:none;border-radius:12px;padding:13px 22px;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(91,45,142,.3);transition:all .2s;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'none\'">\u1F5C4\uFE0F Base de Datos \u2014 Rendimiento Estudiantil</button>'
+    +'</div></div>';
+  document.getElementById('doc-home').innerHTML=h;
+}
+
+// ══ CURSO — SEMANAS GRID ══════════════════════════════════════════
+function renderCurso(){
+  var a=ACCS[accKey];
+  var wPatterns=[
+    'M5,15 Q15,5 25,15 Q35,25 45,15','M0,10 Q10,0 20,10 Q30,20 40,10 Q50,0 60,10',
+    'M5,5 m0,0 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0','M0,0 L20,20 M20,0 L0,20',
+    'M0,10 L10,0 L20,10 L10,20Z','M5,5 h30 v30 h-30Z M15,5 v30 M5,15 h30',
+    'M10,0 L20,10 L10,20 L0,10Z M30,0 L40,10 L30,20 L20,10Z',
+    'M5,5 L25,5 L25,25 L5,25Z M15,0 L15,30 M0,15 L30,15',
+    'M5,15 a10,10 0 0,1 20,0 a10,10 0 0,1 -20,0',
+    'M0,0 L10,10 L20,0 L10,-10Z M20,10 L30,20 L40,10 L30,0Z'
+  ];
+  var h='<div class="content">'
+    +'<div class="breadcrumb"><span class="bc-link" onclick="showDocView(\'home\')">Página Principal</span>'
+    +'<span class="bc-sep">›</span><span class="bc-cur">'+a.course+'</span></div>'
+    +'<div style="font-family:\'DM Serif Display\',serif;font-size:20px;margin-bottom:4px;">'+a.course+'</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:22px;">'+a.prog+' · Semestre 1 · 16 semanas · Cortes: S5, S10, S15</div>'
+    +'<div class="weeks-grid" id="weeks-grid">';
+
+  // Descripción card first
+  h+='<div class="week-card" style="cursor:default;">'
+    +'<div class="wc-banner"><div class="wc-banner-bg pat-0">'
+    +'<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">'
+    +'<polygon points="40,5 75,65 5,65" fill="rgba(255,255,255,.15)"/>'
+    +'<polygon points="40,20 65,60 15,60" fill="rgba(255,255,255,.1)"/></svg>'
+    +'</div><div class="wc-label"><div class="wc-label-text">Descripción</div></div></div>'
+    +'<div class="wc-body"><div class="wc-info">Información del curso</div></div></div>';
+
+  for(var w=1;w<=16;w++){
+    var corteLabel=getWeekCorteLabel(w);
+    var isParcial=CORTES.some(function(c){return c.parcial===w;});
+    var wActs=0,wAbs=0;
+    a.students.forEach(function(st){
+      wActs+=DATA[st.id].weeks[w].acts.length;
+      if(DATA[st.id].weeks[w].absent) wAbs++;
+    });
+    var cls='week-card';
+    if(wAbs>0) cls+=' has-abs';
+    else if(wActs>0) cls+=' has-acts';
+    if(isParcial) cls+=' is-parcial';
+    var badge='';
+    if(isParcial) badge='<div class="wc-badge parcial">Parcial</div>';
+    else if(wAbs>0) badge='<div class="wc-badge absent">'+wAbs+' falta(s)</div>';
+    else if(wActs>0) badge='<div class="wc-badge acts">'+wActs+' act.</div>';
+    var pat='pat-'+((w-1)%16);
+    var svgIdx=((w-1)%wPatterns.length);
+    h+='<div class="'+cls+'" onclick="openSemana('+w+')">'
+      +'<div class="wc-banner"><div class="wc-banner-bg '+pat+'">'
+      +'<svg width="80" height="80" viewBox="0 0 50 30" xmlns="http://www.w3.org/2000/svg">'
+      +'<path d="'+wPatterns[svgIdx]+'" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2"/></svg>'
+      +badge+'</div>'
+      +'<div class="wc-label"><div class="wc-label-text">Semana '+w+'</div></div></div>'
+      +'<div class="wc-body"><div class="wc-info">'+(isParcial?'📝 Parcial':wActs>0?wActs+' actividad(es)':'Sin actividades')+'</div></div></div>';
+  }
+  h+='</div></div>';
+  document.getElementById('doc-curso').innerHTML=h;
+}
+
+function getWeekCorteLabel(w){
+  for(var i=0;i<CORTES.length;i++){
+    var c=CORTES[i];
+    if(c.weeks.indexOf(w)>=0||c.parcial===w) return c.lbl;
+  }
+  return '';
+}
+
+// ══ SEMANA VIEW ═══════════════════════════════════════════════════
+function openSemana(w){curWeek=w; showDocView('semana');}
+
+function renderSemana(){
+  var a=ACCS[accKey], w=curWeek;
+  var corteLabel=getWeekCorteLabel(w);
+  var isParcial=CORTES.some(function(c){return c.parcial===w;});
+  var corteObj=null;
+  CORTES.forEach(function(c){if(c.weeks.indexOf(w)>=0||c.parcial===w) corteObj=c;});
+
+  var h='<div class="content">'
+    +'<div class="breadcrumb">'
+    +'<span class="bc-link" onclick="showDocView(\'home\')">Página Principal</span>'
+    +'<span class="bc-sep">›</span>'
+    +'<span class="bc-link" onclick="showDocView(\'curso\')">'+a.course+'</span>'
+    +'<span class="bc-sep">›</span>'
+    +'<span class="bc-cur">Semana '+w+(isParcial?' — Parcial':'')+'</span></div>'
+    +'<div class="semana-tabs">'
+    +'<button class="stab on" id="stab-acts" onclick="semTab(\'acts\',this)">📝 Actividades</button>'
+    +'<button class="stab" id="stab-cal" onclick="semTab(\'cal\',this)">🎓 Calificaciones del curso</button>'
+    +'</div>'
+    +'<div id="sem-acts-panel"></div>'
+    +'<div id="sem-cal-panel" style="display:none;"></div>'
+    +'</div>';
+  document.getElementById('doc-semana').innerHTML=h;
+  buildSemActs(w,isParcial,corteObj);
+}
+
+function semTab(t,btn){
+  document.querySelectorAll('.stab').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('sem-acts-panel').style.display=t==='acts'?'':'none';
+  document.getElementById('sem-cal-panel').style.display=t==='cal'?'':'none';
+  if(t==='cal') buildSemCal(curWeek);
+}
+
+function buildSemActs(w,isParcial,corteObj){
+  var a=ACCS[accKey];
+  var h='';
+  // Parcial block on top if parcial week
+  if(isParcial&&corteObj){
+    h+='<div class="parcial-block">'
+      +'<div class="parcial-head">📝 <span class="parcial-title">Nota del Parcial — '+corteObj.lbl+'</span></div>'
+      +'<table class="parcial-table"><thead><tr><th>Estudiante</th><th>Programa</th><th>Nota Parcial</th><th>Estado corte</th></tr></thead><tbody>';
+    a.students.forEach(function(st){
+      var p=DATA[st.id].parciales[corteObj.id];
+      var gc=p===null?'':(p>=4?' gh':p>=3?' gm':' gl');
+      var note=getCorteNote(st.id,corteObj);
+      var cls=note===null?'pend':note>=3?'pass':'fail';
+      var sl=note===null?'Pendiente':note>=3?'Aprobado':'Reprobado';
+      h+='<tr><td><div style="display:flex;align-items:center;gap:8px;">'
+        +'<div class="sb-av" style="background:'+st.col+';width:26px;height:26px;font-size:10px;">'+st.av+'</div><b>'+st.name+'</b></div></td>'
+        +'<td>'+a.prog+'</td>'
+        +'<td><input class="ginp'+gc+'" data-t="parcial" data-sid="'+st.id+'" data-cid="'+corteObj.id
+        +'" type="number" min="0" max="5" step="0.1" placeholder="—" value="'+(p!==null?p:'')+'" oninput="parcialInp(this)"></td>'
+        +'<td><span class="chip '+cls+'">'+sl+'</span></td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+
+// Shared "Add activity for all" bar
+// Shared "Add activity for all" bar
+h += '<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;margin-bottom:14px;padding:16px 18px;box-shadow:var(--sh-sm);">'
+   + '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px;">📝 Actividades — Semana ' + w + '</div>'
+   + '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
+   + '<input id="act-name-global" type="text" placeholder="Nombre de la actividad..." style="border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-family:\'DM Sans\',sans-serif;font-size:12px;color:var(--ink);outline:none;min-width:220px;">'
+   + '<button id="add-act-global" data-w="' + w + '" style="background:var(--blue-pale);border:1.5px dashed var(--blue2);border-radius:8px;padding:6px 14px;font-family:\'DM Sans\',sans-serif;font-size:12px;font-weight:700;color:var(--blue2);cursor:pointer;">+ Agregar actividad para todos</button>'
+   + '</div>'
+   + '</div>';
+
+// Per-student blocks
+a.students.forEach(function(st){
+  h += buildStuActBlock(st, w, a);
+});
+document.getElementById('sem-acts-panel').innerHTML = h;
+bindSemEvents();
+
+// Wire global add button — adds to ALL students (max 3 per week)
+var addBtn = document.getElementById('add-act-global');
+if (addBtn) {
+  addBtn.addEventListener('click', function(){
+    var week = parseInt(this.dataset.w);
+    var nameInp = document.getElementById('act-name-global');
+    var actName = nameInp ? nameInp.value.trim() : '';
+    if (!actName) { alert('Por favor escribe el nombre de la actividad.'); return; }
+    var alreadyFull = a.students.every(function(st){
+      return DATA[st.id].weeks[week].acts.length >= 3;
+    });
+    if (alreadyFull) { alert('Máximo 3 actividades por semana.'); return; }
+    a.students.forEach(function(st){
+      if (DATA[st.id].weeks[week].acts.length < 3) {
+        DATA[st.id].weeks[week].acts.push({ name: actName, grade: null }); // ← nombre compartido
+      }
+    });
+    afterChange();
+    buildSemActs(curWeek, CORTES.some(function(c){ return c.parcial === curWeek; }), getCorteObjForWeek(curWeek));
+  });
+}
+}
+
+function buildStuActBlock(st,w,a){
+  var wd=DATA[st.id].weeks[w];
+  var risk=getRisk(st.id);
+var rL={none:'✓ Sin riesgo',low:'⚠ Riesgo leve',high:'🚨 Riesgo alto',absent:'🔴 Inasistencias','abs-risk':'⚠ Riesgo inasistencias','abs-crit':'🚨 Inasistencias críticas',lost:'💀 Pérdida por faltas'}[risk];
+var rCls={none:'none',low:'low',high:'high',absent:'absent','abs-risk':'low','abs-crit':'high',lost:'high'}[risk];
+  var h='<div class="stu-block">'
+    +'<div class="sb-head">'
+    +'<div class="sb-av" style="background:'+st.col+'">'+st.av+'</div>'
+    +'<div><div class="sb-name">'+st.name+'</div><div class="sb-prog">'+a.prog+'</div></div>'
+    +'<span class="pill '+rCls+'" style="margin-left:8px;">'+rL+'</span>'
+    +'<div style="margin-left:auto;display:flex;align-items:center;gap:6px;">'
+    +'<div class="abs-toggle'+(wd.absent?' absent':'')+'" data-sid="'+st.id+'" data-w="'+w+'" onclick="togAbs(this)">'
+    +(wd.absent?'✕ Inasistencia':'✓ Presente')+'</div>'
+    +'</div></div>'
+    +'<div class="sb-acts">';
+  if(wd.acts.length===0){
+    h+='<div style="font-size:12px;color:var(--muted);padding:6px 0;">Sin actividades esta semana.</div>';
+  }
+  wd.acts.forEach(function(act,ai){
+    var gc=act.grade===null?'':(act.grade>=4?' gh':act.grade>=3?' gm':' gl');
+    h+='<div class="act-row">'
+      +'<span class="act-num">Act '+(ai+1)+'</span>'
+      +'<input class="act-name-inp" data-sid="'+st.id+'" data-w="'+w+'" data-ai="'+ai
+      +'" type="text" placeholder="Nombre actividad" value="'+esc(act.name||'')+'">'
+      +'<input class="ginp'+gc+' act-grade" data-sid="'+st.id+'" data-w="'+w+'" data-ai="'+ai
+      +'" type="number" min="0" max="5" step="0.1" placeholder="Nota" value="'+(act.grade!==null?act.grade:'')+'">'
+      +'<button class="del-btn" data-sid="'+st.id+'" data-w="'+w+'" data-ai="'+ai+'">×</button>'
+      +'</div>';
+  });
+  h+='</div>'
+    +'</div>';
+  return h;
+}
+function buildSemCal(w) {
+  var a = ACCS[accKey];
+  var corteObj = getCorteObjForWeek(w);
+  function nc(v) {
+    return v !== null
+      ? '<b style="color:' + (v >= 3 ? '#1B5E20' : '#C62828') + '">' + v.toFixed(2) + '</b>'
+      : '<span style="color:#aaa">—</span>';
+  }
+
+  var h = '';
+
+  // ── Resumen de esta semana ──────────────────────────────────────
+  h += '<div class="cal-wrap" style="margin-bottom:20px;">'
+     + '<div class="cal-head" style="font-size:13px;">📅 Resumen Semana ' + w + '</div>'
+     + '<table class="cal-tbl"><thead><tr>'
+     + '<th>Estudiante</th><th>Asistencia</th><th>Actividades</th><th>Prom. Semana</th>'
+     + '</tr></thead><tbody>';
+
+  a.students.forEach(function(st) {
+    var wd = DATA[st.id].weeks[w];
+    var wG = wd.acts.filter(function(a) { return a.grade !== null; }).map(function(a) { return a.grade; });
+    var wAvg = wG.length ? +(wG.reduce(function(a, b) { return a + b; }, 0) / wG.length).toFixed(2) : null;
+    var actNames = wd.acts.filter(function(a) { return a.name; }).map(function(a) { return a.name; }).join(', ');
+    h += '<tr>'
+       + '<td><div style="display:flex;align-items:center;gap:8px;">'
+       + '<div class="sb-av" style="background:' + st.col + ';width:24px;height:24px;font-size:9px;">' + st.av + '</div>'
+       + '<b>' + st.name + '</b></div></td>'
+       + '<td><span style="font-size:11px;font-weight:700;color:' + (wd.absent ? '#C62828' : '#2E7D32') + '">'
+       + (wd.absent ? '✕ Falta' : '✓ Presente') + '</span></td>'
+       + '<td style="font-size:12px;">'
+       + (wd.acts.length > 0 ? '<b>' + wd.acts.length + '</b> (' + (actNames || 'sin nombre') + ')' : '—')
+       + '</td>'
+       + '<td style="text-align:center;">' + nc(wAvg) + '</td>'
+       + '</tr>';
+  });
+
+  h += '</tbody></table></div>';
+
+  // ── Acumulado del corte ─────────────────────────────────────────
+  if (corteObj) {
+var allCorteWeeks = corteObj.weeks.concat([corteObj.parcial]).sort(function(a, b) { return a - b; });
+var weeksUntilNow = allCorteWeeks.filter(function(cw) { return cw <= w; });
+
+    h += '<div class="cal-wrap">'
+       + '<div class="cal-head" style="font-size:13px;">📊 Acumulado ' + corteObj.lbl
+       + ' <span style="font-size:11px;color:var(--muted);font-weight:400;">'
+       + '(Semanas ' + corteObj.weeks[0] + '–' + corteObj.weeks[corteObj.weeks.length - 1]
+       + ' + Parcial Sem ' + corteObj.parcial + ')</span></div>'
+       + '<table class="cal-tbl"><thead><tr>'
+       + '<th>Estudiante</th>';
+
+    // Columna por cada semana del corte hasta la actual
+    weeksUntilNow.forEach(function(cw) {
+      h += '<th>Sem ' + cw + '</th>';
+    });
+
+    h += '<th>Prom. Acts</th><th>Parcial</th><th>Nota Corte</th><th>Estado</th>'
+       + '</tr></thead><tbody>';
+
+    a.students.forEach(function(st) {
+      var note = getCorteNote(st.id, corteObj);
+      var parc = DATA[st.id].parciales[corteObj.id];
+      var avg = getCorteAvg(st.id, corteObj);
+      var cls = note === null ? 'pend' : note >= 3 ? 'pass' : 'fail';
+
+      h += '<tr>'
+         + '<td><div style="display:flex;align-items:center;gap:8px;">'
+         + '<div class="sb-av" style="background:' + st.col + ';width:24px;height:24px;font-size:9px;">' + st.av + '</div>'
+         + '<b>' + st.name + '</b></div></td>';
+
+      // Promedio de cada semana hasta la actual
+      weeksUntilNow.forEach(function(cw) {
+        var wActs = DATA[st.id].weeks[cw].acts.filter(function(a) { return a.grade !== null; });
+        var wAvg = wActs.length
+          ? +(wActs.reduce(function(s, a) { return s + a.grade; }, 0) / wActs.length).toFixed(2)
+          : null;
+        h += '<td style="text-align:center;">' + nc(wAvg) + '</td>';
+      });
+
+      h += '<td style="text-align:center;">' + nc(avg) + '</td>'
+         + '<td style="text-align:center;">' + nc(parc) + '</td>'
+         + '<td style="text-align:center;">' + nc(note) + '</td>'
+         + '<td><span class="chip ' + cls + '">'
+         + (note === null ? 'Pendiente' : note >= 3 ? 'Aprobado' : 'Reprobado')
+         + '</span></td></tr>';
+    });
+
+    h += '</tbody></table></div>';
+  }
+
+  document.getElementById('sem-cal-panel').innerHTML = h;
+}
+// ══ CALIFICACIONES GENERALES ══════════════════════════════════════
+function renderCalifs(){
+  var a=ACCS[accKey];
+  function nc(v){return v!==null?'<b style="color:'+(v>=3?'#1B5E20':'#C62828')+'">'+v.toFixed(2)+'</b>':'<span style="color:#aaa">—</span>';}
+  var h='<div class="content">'
+    +'<div class="page-title">Calificaciones</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:20px;">'+a.course+' · '+a.prog+'</div>';
+
+  // Summary table at top
+  h+='<div class="cal-wrap" style="margin-bottom:24px;">'
+    +'<div class="cal-head" style="font-size:14px;">📊 Resumen por Cortes</div>'
+    +'<table class="cal-tbl"><thead><tr>'
+    +'<th>Estudiante</th><th>Corte 1 (30%)</th><th>Corte 2 (30%)</th><th>Corte 3 (40%)</th><th>Definitiva</th><th>Estado</th><th>Riesgo</th>'
+    +'</tr></thead><tbody>';
+  a.students.forEach(function(st){
+    var c1=getCorteNote(st.id,CORTES[0]),c2=getCorteNote(st.id,CORTES[1]),c3=getCorteNote(st.id,CORTES[2]);
+    var def=getDef(st.id),risk=getRisk(st.id);
+var rL={none:'✓ Sin riesgo',low:'⚠ Riesgo leve',high:'🚨 Riesgo alto',absent:'🔴 Inasistencias','abs-risk':'⚠ Riesgo inasistencias','abs-crit':'🚨 Inasistencias críticas',lost:'💀 Pérdida por faltas'}[risk];
+var rCls={none:'none',low:'low',high:'high',absent:'absent','abs-risk':'low','abs-crit':'high',lost:'high'}[risk];
+    var cls = def===null ? 'pend' : def>=3 ? 'pass' : 'fail';
+    h+='<tr><td><div style="display:flex;align-items:center;gap:8px;">'
+      +'<div class="sb-av" style="background:'+st.col+';width:28px;height:28px;font-size:11px;">'+st.av+'</div><b>'+st.name+'</b></div></td>'
+      +'<td style="text-align:center;">'+nc(c1)+'</td><td style="text-align:center;">'+nc(c2)+'</td><td style="text-align:center;">'+nc(c3)+'</td>'
+      +'<td style="text-align:center;">'+(def!==null?'<b style="font-size:15px;color:'+(def>=3?'#1B5E20':'#C62828')+'">'+def.toFixed(2)+'</b>':'<span style="color:#aaa">—</span>')+'</td>'
+      +'<td><span class="chip '+cls+'">'+(def===null?'Pendiente':def>=3?'Aprobado':'Reprobado')+'</span></td>'
+      +'<td><span class="pill '+risk+'">'+rL+'</span></td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  // Detail by corte and week
+  CORTES.forEach(function(corte){
+    h+='<div class="cal-wrap" style="margin-bottom:24px;">'
+      +'<div class="cal-head" style="font-size:14px;">'+corte.lbl+' <span style="font-size:11px;color:var(--muted);font-weight:400;">('+Math.round(corte.w*100)+'% — Semanas '+corte.weeks[0]+' a '+corte.weeks[corte.weeks.length-1]+', Parcial Sem '+corte.parcial+')</span></div>';
+
+    // Week rows
+    corte.weeks.forEach(function(w){
+      h+='<div style="padding:10px 18px;border-bottom:1px solid var(--grey-100);">'
+        +'<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Semana '+w+'</div>'
+        +'<table class="cal-tbl" style="margin:0;"><thead><tr>'
+        +'<th>Estudiante</th><th>Asistencia</th><th>Actividades</th><th>Prom. sem.</th>'
+        +'</tr></thead><tbody>';
+      a.students.forEach(function(st){
+        var wd=DATA[st.id].weeks[w];
+        var wG=wd.acts.filter(function(a){return a.grade!==null;}).map(function(a){return a.grade;});
+        var wAvg=wG.length?+(wG.reduce(function(a,b){return a+b;},0)/wG.length).toFixed(2):null;
+        h+='<tr><td><div style="display:flex;align-items:center;gap:8px;">'
+          +'<div class="sb-av" style="background:'+st.col+';width:22px;height:22px;font-size:9px;">'+st.av+'</div>'+st.name+'</div></td>'
+          +'<td><span style="font-size:11px;font-weight:700;color:'+(wd.absent?'#C62828':'#2E7D32')+'">'+(wd.absent?'✕ Falta':'✓ Presente')+'</span></td>'
+          +'<td style="text-align:center;"><b>'+wd.acts.length+'</b>'+(wd.acts.length>0?' ('+wd.acts.filter(function(a){return a.name;}).map(function(a){return a.name;}).join(', ')+')'
+            +(wG.length?'':' — sin nota'):'')+'</td>'
+          +'<td style="text-align:center;">'+nc(wAvg)+'</td>'
+          +'</tr>';
+      });
+      h+='</tbody></table></div>';
+    });
+
+    // Parcial row
+    h+='<div style="padding:10px 18px;background:var(--grey-50);border-top:2px solid var(--amber);">'
+      +'<div style="font-size:11px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">📝 Parcial — Semana '+corte.parcial+'</div>'
+      +'<table class="cal-tbl" style="margin:0;"><thead><tr>'
+      +'<th>Estudiante</th><th>Prom. Actividades</th><th>Nota Parcial</th><th>Nota Corte</th><th>Estado</th>'
+      +'</tr></thead><tbody>';
+    a.students.forEach(function(st){
+      var avg=getCorteAvg(st.id,corte),parc=DATA[st.id].parciales[corte.id],note=getCorteNote(st.id,corte);
+      var cls=note===null?'pend':note>=3?'pass':'fail';
+      h+='<tr><td><div style="display:flex;align-items:center;gap:8px;">'
+        +'<div class="sb-av" style="background:'+st.col+';width:22px;height:22px;font-size:9px;">'+st.av+'</div><b>'+st.name+'</b></div></td>'
+        +'<td style="text-align:center;">'+nc(avg)+'</td>'
+        +'<td style="text-align:center;">'+nc(parc)+'</td>'
+        +'<td style="text-align:center;">'+nc(note)+'</td>'
+        +'<td><span class="chip '+cls+'">'+(note===null?'Pendiente':note>=3?'Aprobado':'Reprobado')+'</span></td></tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='</div>'; // close cal-wrap
+  });
+
+  h+='</div>';
+  document.getElementById('doc-califs').innerHTML=h;
+}
+
+// ══ PARTICIPANTES ═════════════════════════════════════════════════
+function renderPartic(){
+  var a=ACCS[accKey];
+  var h='<div class="content">'
+    +'<div class="page-title">Participantes</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:20px;">'+a.course+' · '+a.prog+' · '+a.students.length+' estudiantes</div>'
+    +'<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--sh-sm);">';
+
+  a.students.forEach(function(st,i){
+    var def=getDef(st.id);
+    var defCol=def===null?'var(--muted)':def>=3?'#1B5E20':'#C62828';
+    h+='<div style="display:flex;align-items:center;gap:14px;padding:14px 20px;'+(i>0?'border-top:1px solid var(--grey-100)':'')+';cursor:pointer;" onclick="showDocView(\'semana\')">'
+      +'<div class="sb-av" style="background:'+st.col+';width:40px;height:40px;font-size:14px;flex-shrink:0;">'+st.av+'</div>'
+      +'<div style="flex:1;">'
+      +'<div style="font-size:14px;font-weight:700;color:var(--ink);">'+st.name+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);">'+a.prog+' · ID: '+st.id+'</div>'
+      +'</div>'
+      +'<div style="text-align:right;">'
+      +(def!==null?'<div style="font-size:18px;font-weight:800;color:'+defCol+';">'+def.toFixed(2)+'</div>'
+        +'<div style="font-size:10px;color:var(--muted);">Definitiva</div>'
+        :'<div style="font-size:12px;color:var(--muted);">Sin notas</div>')
+      +'</div>'
+      +'</div>';
+  });
+  h+='</div></div>';
+  document.getElementById('doc-partic').innerHTML=h;
+}
+
+// ══ BASE DE DATOS MODAL ═══════════════════════════════════════════
+function openBD(){
+  var modal=document.getElementById('bd-modal');
+  if(modal){modal.classList.add('open'); renderBD();}
+}
+function closeBD(){
+  var modal=document.getElementById('bd-modal');
+  if(modal) modal.classList.remove('open');
+}
+function renderBD(){
+  var filterCarrera=document.getElementById('bd-carrera')?document.getElementById('bd-carrera').value:'all';
+  var filterSem=document.getElementById('bd-sem')?document.getElementById('bd-sem').value:'all';
+  var a=ACCS[accKey];
+  var students=a.students;
+
+  // Count categories
+  var alto=0,aprobado=0,reprobado=0,sinDatos=0;
+  students.forEach(function(st){
+    var def=getDef(st.id);
+    if(def===null) sinDatos++;
+    else if(def>=4) alto++;
+    else if(def>=3) aprobado++;
+    else reprobado++;
+  });
+  var total=students.length;
+
+  // Draw pie chart
+  var canvas=document.getElementById('bd-pie');
+  if(canvas){
+    var ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,200,200);
+    var data=[
+      {v:alto,c:'#2E7D32'},
+      {v:aprobado,c:'#F57F17'},
+      {v:reprobado,c:'#E53935'},
+      {v:sinDatos,c:'#bbb'}
+    ];
+    var angle=0;
+    var cx=100,cy=100,r=80;
+    data.forEach(function(d){
+      if(d.v===0) return;
+      var slice=(d.v/total)*Math.PI*2;
+      ctx.beginPath();ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,angle,angle+slice);
+      ctx.closePath();ctx.fillStyle=d.c;ctx.fill();
+      angle+=slice;
+    });
+    // white center
+    ctx.beginPath();ctx.arc(cx,cy,45,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+    ctx.fillStyle='#0D2461';ctx.font='bold 14px DM Sans';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(total+' est.',cx,cy);
+  }
+
+  // Update legend counts
+  var ea=document.getElementById('bd-cnt-alto'),eb=document.getElementById('bd-cnt-aprob'),
+      ec=document.getElementById('bd-cnt-rep'),ed=document.getElementById('bd-cnt-nd');
+  if(ea) ea.textContent=alto;
+  if(eb) eb.textContent=aprobado;
+  if(ec) ec.textContent=reprobado;
+  if(ed) ed.textContent=sinDatos;
+  var bc=document.getElementById('bd-count');
+  if(bc) bc.textContent=total+' estudiante'+(total!==1?'s':'');
+
+  // Student list
+  var listEl=document.getElementById('bd-list');
+  if(!listEl) return;
+  var html='';
+  students.forEach(function(st){
+    var def=getDef(st.id);
+    var c1=getCorteNote(st.id,CORTES[0]),c2=getCorteNote(st.id,CORTES[1]),c3=getCorteNote(st.id,CORTES[2]);
+    function nc(v){return v!==null?'<b style="color:'+(v>=3?'#1B5E20':'#C62828')+'">'+v.toFixed(2)+'</b>':'<span style="color:#aaa;font-size:12px;">—</span>';}
+    html+='<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--grey-100);">'
+      +'<div class="sb-av" style="background:'+st.col+';width:38px;height:38px;font-size:13px;flex-shrink:0;">'+st.av+'</div>'
+      +'<div style="flex:1;">'
+      +'<div style="font-size:13px;font-weight:700;">'+st.name+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);">'+a.prog+' · '+a.course+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:10px;align-items:center;">'
+      +'<div style="text-align:center;"><div style="font-size:9px;color:var(--muted);font-weight:700;">C1</div>'+nc(c1)+'</div>'
+      +'<div style="text-align:center;"><div style="font-size:9px;color:var(--muted);font-weight:700;">C2</div>'+nc(c2)+'</div>'
+      +'<div style="text-align:center;"><div style="font-size:9px;color:var(--muted);font-weight:700;">C3</div>'+nc(c3)+'</div>'
+      +'<div style="text-align:center;min-width:40px;"><div style="font-size:9px;color:var(--muted);font-weight:700;">DEF</div>'
+      +(def!==null?'<b style="font-size:15px;color:'+(def>=3?'#1B5E20':'#C62828')+'">'+def.toFixed(2)+'</b>':'<span style="color:#aaa">—</span>')
+      +'</div></div></div>';
+  });
+  listEl.innerHTML=html;
+}
+
+// ══ BUZÓN DOCENTE ═════════════════════════════════════════════════
+function renderBuzon(){
+  var list=inbox();
+  var h='<div class="content"><div class="page-title">Buzón de Alertas</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Mensajes automáticos del sistema de monitoreo</div>'
+    +'<div class="buzon-wrap">'
+    +'<div class="buzon-list" id="doc-inbox-ul"></div>'
+    +'<div class="buzon-dp" id="doc-dp">'
+    +'<div class="dp-empty" id="doc-dp-empty"><div class="dp-ei">📬</div><div class="dp-et">Selecciona un mensaje</div></div>'
+    +'<div id="doc-dp-content" style="display:none;flex:1;flex-direction:column;overflow:hidden;"></div>'
+    +'</div></div></div>';
+  document.getElementById('doc-buzon').innerHTML=h;
+  renderDocInbox();
+}
+function renderDocInbox(){
+  var list=inbox(),ul=document.getElementById('doc-inbox-ul');
+  if(!ul)return; ul.innerHTML='';
+  if(!list.length){
+    ul.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px;">📭 Sin alertas aún.<br>Registra actividades para activar el monitoreo.</div>';
+    return;
+  }
+  list.forEach(function(m,i){
+    var card=document.createElement('div');
+    card.className='mcard'+(i===selMail?' sel':'');
+    card.onclick=function(){openDocMail(i);};
+    card.innerHTML='<div class="mc-top"><div class="mcav '+m.avc+'">'+m.av+'</div>'
+      +'<span class="mcsender">'+m.sender+'</span><span class="mcwhen">'+m.when+'</span></div>'
+      +'<div class="mcsubj">'+m.subj+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Para: '+m.stuName+'</div>'
+      +'<span class="mctag '+m.tag+'">'+m.tagLbl+'</span>';
+    ul.appendChild(card);
+  });
+  if(selMail>=0&&selMail<list.length) openDocMail(selMail);
+}
+function openDocMail(i){
+  selMail=i;
+  var m=inbox()[i];
+  m.readDoc=true; // ← leído solo para el profesor
+  document.querySelectorAll('#doc-inbox-ul .mcard').forEach(function(c,j){c.className='mcard'+(j===i?' sel':'');});
+  var empty=document.getElementById('doc-dp-empty'),dc=document.getElementById('doc-dp-content');
+  if(!empty||!dc)return;
+  empty.style.display='none'; dc.style.cssText='display:flex;flex:1;flex-direction:column;overflow:hidden;';
+  dc.innerHTML=buildMailDetail(m, false);
+  updateBadge();
+}
+
+// ══ STUDENT VIEW ══════════════════════════════════════════════════
+function stuTab(t,btn){
+  stuCurTab=t;
+  document.querySelectorAll('#s-stu .sn-link').forEach(function(b){b.classList.remove('act');});
+  if(btn) btn.classList.add('act');
+  stuTabDirect(t);
+}
+function stuTabDirect(t){
+  stuCurTab=t;
+  document.getElementById('stu-notas-panel').style.display=t==='notas'?'block':'none';
+  document.getElementById('stu-buzon-panel').style.display=t==='buzon'?'block':'none';
+  if(t==='notas') renderStuNotas();
+  if(t==='buzon') renderStuBuzon();
+}
+function goMailStu(){stuTab('buzon',document.getElementById('sn-stu-buzon'));}
+
+function renderStuNotas(){
+  if(!stuId||!DATA[stuId]) return;
+  var d=DATA[stuId], stInfo=null, aInfo=null;
+  Object.keys(ACCS).forEach(function(k){
+    ACCS[k].students.forEach(function(st){if(st.id===stuId){stInfo=st;aInfo=ACCS[k];}});
+  });
+  if(!stInfo) return;
+  var def=getDef(stuId);
+  var defCol=def===null?'var(--muted)':def>=3?'#1B5E20':'#C62828';
+  var h='<div class="content">'
+    +'<div class="sv-profile">'
+    +'<div class="sv-av" style="background:'+stInfo.col+'">'+stInfo.av+'</div>'
+    +'<div><div class="sv-name">'+stInfo.name+'</div><div class="sv-meta">'+aInfo.prog+' · '+aInfo.course+'</div></div>'
+    +'<div class="sv-def"><div class="v" style="color:'+defCol+'">'+(def!==null?def.toFixed(2):'—')+'</div><div style="font-size:10px;color:var(--muted);">Definitiva</div></div>'
+    +'</div>'
+    +'<div class="sv-cortes">';
+  CORTES.forEach(function(c){
+    var n=getCorteNote(stuId,c),col=n===null?'var(--muted)':n>=3?'#1B5E20':'#C62828';
+    h+='<div class="sv-c"><div class="sv-cl">'+c.lbl+' ('+Math.round(c.w*100)+'%)</div>'
+      +'<div class="sv-cv" style="color:'+col+'">'+(n!==null?n.toFixed(2):'—')+'</div>'
+      +'<div class="sv-cw">Parcial sem. '+c.parcial+'</div></div>';
+  });
+  h+='</div><div class="sv-acts"><div class="sv-ath">Actividades y parciales registrados</div>';
+  var hasAny=false;
+  CORTES.forEach(function(c){
+    c.weeks.forEach(function(w){
+      var wd=d.weeks[w];
+      if(wd.absent){hasAny=true;
+        h+='<div class="sv-act"><span class="sv-awk">Sem '+w+'</span>'
+          +'<span class="sv-an" style="color:#C62828;">✕ Inasistencia</span><span class="sv-ag">—</span></div>';}
+      wd.acts.forEach(function(act){
+        if(act.name||act.grade!==null){hasAny=true;
+          var gc=act.grade===null?'var(--muted)':act.grade>=4?'#1B5E20':act.grade>=3?'#E65100':'#C62828';
+          h+='<div class="sv-act"><span class="sv-awk">Sem '+w+'</span>'
+            +'<span class="sv-an">'+(act.name||'Actividad')+'</span>'
+            +'<span class="sv-ag" style="color:'+gc+'">'+(act.grade!==null?act.grade.toFixed(1):'—')+'</span></div>';}
+      });
+    });
+    var p=d.parciales[c.id];
+    if(p!==null){hasAny=true;var pc=p>=3?'#1B5E20':'#C62828';
+      h+='<div class="sv-act" style="background:#FFFDE7;"><span class="sv-awk">Sem '+c.parcial+'</span>'
+        +'<span class="sv-an"><b>📝 Parcial '+c.lbl+'</b></span>'
+        +'<span class="sv-ag" style="color:'+pc+';font-size:14px;">'+p.toFixed(1)+'</span></div>';}
+  });
+  if(!hasAny) h+='<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px;">El docente aún no ha registrado actividades.</div>';
+  h+='</div></div>';
+  document.getElementById('stu-notas-panel').innerHTML=h;
+}
+
+function renderStuBuzon(){
+  var list=stuInbox();
+  var h='<div class="content"><div class="page-title">Mi Buzón</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Alertas y material enviados por el sistema</div>'
+    +'<div class="buzon-wrap">'
+    +'<div class="buzon-list" id="stu-inbox-ul"></div>'
+    +'<div class="buzon-dp"><div class="dp-empty" id="stu-dp-empty"><div class="dp-ei">📬</div><div class="dp-et">Selecciona un mensaje</div></div>'
+    +'<div id="stu-dp-content" style="display:none;flex:1;flex-direction:column;overflow:hidden;"></div>'
+    +'</div></div></div>';
+  document.getElementById('stu-buzon-panel').innerHTML=h;
+  var ul=document.getElementById('stu-inbox-ul');
+  if(!list.length){ul.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px;">📭 Sin mensajes.</div>';return;}
+  list.forEach(function(m,i){
+    var card=document.createElement('div');
+    card.className='mcard'+(i===stuSelMail?' sel':'');
+    card.onclick=function(){openStuMail(i);};
+    card.innerHTML='<div class="mc-top"><div class="mcav '+m.avc+'">'+m.av+'</div>'
+      +'<span class="mcsender">'+m.sender+'</span><span class="mcwhen">'+m.when+'</span></div>'
+      +'<div class="mcsubj">'+m.subj+'</div>'
+      +'<span class="mctag '+m.tag+'">'+m.tagLbl+'</span>';
+    ul.appendChild(card);
+  });
+  if(stuSelMail>=0&&stuSelMail<list.length) openStuMail(stuSelMail);
+}
+function openStuMail(i){
+  stuSelMail=i;
+  var m=stuInbox()[i];
+  m.readStu=true; // ← leído solo para el estudiante
+  document.querySelectorAll('#stu-inbox-ul .mcard').forEach(function(c,j){c.className='mcard'+(j===i?' sel':'');});
+  var empty=document.getElementById('stu-dp-empty'),dc=document.getElementById('stu-dp-content');
+  if(!empty||!dc)return;
+  empty.style.display='none'; dc.style.cssText='display:flex;flex:1;flex-direction:column;overflow:hidden;';
+  dc.innerHTML=buildMailDetail(m, true);
+  updateStuBadge();
+}
+function buildMailDetail(m, isStuView) {
+  var showBtn = m.btn && isStuView && m.tag !== 'inasistencia';
+  return '<div class="dp-h"><div class="dp-subj">'+m.subj+'</div>'
+    +'<div class="dp-meta"><div class="dp-mav '+m.avc+'">'+m.av+'</div>'
+    +'<div><div class="dp-sname">'+m.sender+'</div><div class="dp-email">'+m.email+'</div></div>'
+    +'<div class="dp-chip">'+m.when+'</div></div></div>'
+    +'<div class="dp-body">'+m.body+'</div>'
+    +'<div class="dp-actions">'
+    +(showBtn?'<button class="btnp blue" onclick="openAg(\''+esc(m.stuName)+'\')">📅 '+m.btn+'</button>':'')
+    +'<button class="btns">↩ Responder</button><button class="btns">⭐ Marcar</button>'
+    +'<span class="dp-tag '+m.tag+'">'+m.tagLbl+'</span></div>';
+}
+
+// ══ COMPUTATIONS ══════════════════════════════════════════════════
+function getStudent(sid){var st=null;Object.keys(ACCS).forEach(function(k){ACCS[k].students.forEach(function(s){if(s.id===sid)st=s;});});return st;}
+function getCorteAvg(sid, c) {
+  var g = [];
+  c.weeks.forEach(function(w) {
+    DATA[sid].weeks[w].acts.forEach(function(a) { if (a.grade !== null) g.push(a.grade); });
+  });
+  // La semana del parcial también cuenta para el promedio de actividades
+  DATA[sid].weeks[c.parcial].acts.forEach(function(a) { if (a.grade !== null) g.push(a.grade); });
+  return g.length ? +(g.reduce(function(a, b) { return a + b; }, 0) / g.length).toFixed(2) : null;
+}
+function getCorteNote(sid,c){
+  var p=DATA[sid].parciales[c.id];if(p===null)return null;
+  var avg=getCorteAvg(sid,c);
+  return avg!==null?+(p*.6+avg*.4).toFixed(2):p;
+}
+function getDef(sid){
+  var t=0,w=0;CORTES.forEach(function(c){var n=getCorteNote(sid,c);if(n!==null){t+=n*c.w;w+=c.w;}});
+  return w===0?null:+(t/w).toFixed(2);
+}
+function project(sid){
+  var ds=0,dw=0,rem=[];
+  CORTES.forEach(function(c){var n=getCorteNote(sid,c);if(n!==null){ds+=n*c.w;dw+=c.w;}else rem.push(c);});
+  if(dw===0)return null;
+  var avg=ds/dw,proj=ds;rem.forEach(function(c){proj+=avg*c.w;});return+proj.toFixed(2);
+}
+function cntAbs(sid){var n=0;for(var w=1;w<=16;w++)if(DATA[sid].weeks[w].absent)n++;return n;}
+function cntAbsInCorte(sid,c){
+  var n=0;
+  c.weeks.forEach(function(w){if(DATA[sid].weeks[w].absent)n++;});
+  if(DATA[sid].weeks[c.parcial].absent)n++;
+  return n;
+}
+function hasTwoConsecLow(sid){
+  var all=[];for(var w=1;w<=16;w++)DATA[sid].weeks[w].acts.forEach(function(a){if(a.grade!==null)all.push(a.grade);});
+  for(var i=0;i<all.length-1;i++)if(all[i]<3&&all[i+1]<3)return true;return false;
+}
+
+function hasDrop(sid){
+  var all=[];for(var w=1;w<=16;w++)DATA[sid].weeks[w].acts.forEach(function(a){if(a.grade!==null)all.push(a.grade);});
+  if(all.length<4)return 0; // 0 = sin bajón
+  var f=(all[0]+all[1])/2,l=(all[all.length-2]+all[all.length-1])/2;
+  var diff=f-l;
+  if(diff>1.2)return 2; // crítico
+  if(diff>0.7)return 1; // moderado
+  return 0;
+}
+function getRisk(sid){
+  if(!DATA[sid])return 'none';
+  var abs=cntAbs(sid);
+  if(abs>=5)return 'lost';
+  if(abs>=4)return 'abs-crit';
+  if(abs>=3)return 'abs-risk';
+  var pr=project(sid);if(pr!==null&&pr<3)return 'high';
+  if(hasTwoConsecLow(sid)||hasDrop(sid)>=1)return 'low';
+  return 'none';
+}
+
+// ══ ALERTS ════════════════════════════════════════════════════════
+function hasKey(k){return inbox().some(function(m){return m.key===k;});}
+function getCurrentCorteLabel(sid){
+  var lastW=0;for(var w=1;w<=16;w++){if(DATA[sid].weeks[w].absent)lastW=w;if(DATA[sid].weeks[w].acts.some(function(a){return a.grade!==null;}))lastW=w;}
+  if(!lastW)return 'Inicio';
+  var c=null;CORTES.forEach(function(co){if(co.weeks.indexOf(lastW)>=0||lastW===co.parcial)c=co;});
+  return c?'Semana '+lastW+' ('+c.lbl+')':'Semana '+lastW;
+}
+function recentG(sid){var all=[];for(var w=1;w<=16;w++)DATA[sid].weeks[w].acts.forEach(function(a){if(a.grade!==null)all.push({g:a.grade,n:a.name||'Actividad sem.'+w});});return all.slice(-5);}
+function gTable(grades){
+  if(!grades.length)return '<p style="color:var(--muted);font-size:12px;">Sin actividades aún.</p>';
+  return '<table><thead><tr><th>Actividad</th><th>Nota</th><th>Estado</th></tr></thead><tbody>'
+    +grades.map(function(r){var c=r.g>=4?'#1B5E20':r.g>=3?'#E65100':'#C62828';var bg=r.g>=4?'#E8F5E9':r.g>=3?'#FFF8E1':'#FFF5F5';var l=r.g>=4?'✓ Bien':r.g>=3?'~ Regular':'↓ Bajo';
+      return '<tr style="background:'+bg+'"><td>'+esc(r.n)+'</td><td style="text-align:center;font-weight:800;color:'+c+'">'+r.g.toFixed(1)+'</td><td style="text-align:center;font-weight:700;color:'+c+'">'+l+'</td></tr>';}).join('')+'</tbody></table>';
+}
+function genAlerts(){
+  if(!accKey)return;
+  var a=ACCS[accKey];
+  a.students.forEach(function(st){
+    var sid=st.id, wLbl=getCurrentCorteLabel(sid);
+
+    CORTES.forEach(function(c){
+      // ¿tiene actividad este corte?
+      var hasActivity=c.weeks.some(function(w){
+        return DATA[sid].weeks[w].acts.length>0||DATA[sid].weeks[w].absent;
+      })||DATA[sid].parciales[c.id]!==null;
+      if(!hasActivity)return;
+
+      var corteId=c.id;
+
+// ── Inasistencias — acumulado semestre ──
+// ── Inasistencias — acumulado semestre ──
+var totalAbs = cntAbs(sid);
+var absRiskKey = 'abs-risk|'+sid;
+var absCritKey = 'abs-crit|'+sid;
+var absLostKey = 'abs-lost|'+sid;
+
+// 3 faltas — solo al estudiante
+if(totalAbs>=3 && !STU_INBOX.some(function(m){return m.key===absRiskKey+'|stu';})){
+  var ms=mkAbsRiskMailStu(st,a,wLbl);ms.key=absRiskKey+'|stu';STU_INBOX.unshift(ms);
+}
+// 4 faltas — solo al estudiante
+if(totalAbs>=4 && !STU_INBOX.some(function(m){return m.key===absCritKey+'|stu';})){
+  var ms=mkAbsCritMailStu(st,a,wLbl);ms.key=absCritKey+'|stu';STU_INBOX.unshift(ms);
+}
+// 5 faltas — al profesor Y al estudiante
+if(totalAbs>=5){
+  if(!hasKey(absLostKey)){
+    var m=mkAbsLostMailDoc(st,a,wLbl);m.key=absLostKey;inbox().unshift(m);
+  }
+  if(!STU_INBOX.some(function(m){return m.key===absLostKey+'|stu';})){
+    var ms=mkAbsLostMailStu(st,a,wLbl);ms.key=absLostKey+'|stu';STU_INBOX.unshift(ms);
+  }
+}
+      // ── Notas del corte actual ──
+      var corteGrades=[];
+      c.weeks.forEach(function(w){
+        DATA[sid].weeks[w].acts.forEach(function(act){
+          if(act.grade!==null)corteGrades.push(act.grade);
+        });
+      });
+
+      // ── low2 — máx 2 por corte ──
+      var low2Count=0;
+      for(var i=0;i<corteGrades.length-1;i++){
+        if(corteGrades[i]<3&&corteGrades[i+1]<3)low2Count++;
+      }
+      var low2Key1='low2a|'+sid+'|'+corteId;
+      var low2Key2='low2b|'+sid+'|'+corteId;
+      if(low2Count>=1&&!hasKey(low2Key1)){
+        var m=mkLowMail(st,a,wLbl);m.key=low2Key1;inbox().unshift(m);
+        var matKey='mat|'+sid+'|'+corteId+'|a';
+        if(!STU_INBOX.some(function(m){return m.key===matKey;})){
+          var mm=mkMatMail(st,a,wLbl);mm.key=matKey;STU_INBOX.unshift(mm);
+        }
+      }
+      if(low2Count>=2&&!hasKey(low2Key2)){
+        var m=mkLowMail(st,a,wLbl);m.key=low2Key2;inbox().unshift(m);
+        var matKey='mat|'+sid+'|'+corteId+'|b';
+        if(!STU_INBOX.some(function(m){return m.key===matKey;})){
+          var mm=mkMatMail(st,a,wLbl);mm.key=matKey;STU_INBOX.unshift(mm);
+        }
+      }
+
+      // ── Proyección — máx 1 por corte, mín 3 notas, solo si low2 no aplica ──
+      var projKey='proj|'+sid+'|'+corteId;
+      var pr=project(sid);
+      if(corteGrades.length>=3&&pr!==null&&pr<3&&low2Count===0&&!hasKey(projKey)){
+        var m=mkProjMail(st,a,wLbl);m.key=projKey;inbox().unshift(m);
+        var matKey='mat|'+sid+'|'+corteId+'|proj';
+        if(!STU_INBOX.some(function(m){return m.key===matKey;})){
+          var mm=mkMatMail(st,a,wLbl);mm.key=matKey;STU_INBOX.unshift(mm);
+        }
+      }
+
+
+// ── Bajón — moderado y crítico, máx 1 cada uno por corte ──
+// ── Bajón — progresivo y mutuamente excluyente ──
+var dropLevel = hasDrop(sid);
+var dropLowKey = 'droplow|'+sid+'|global';
+var dropKey    = 'drop|'+sid+'|global';
+
+if(dropLevel >= 2 && !hasKey(dropKey)){
+  // Caída crítica: va directo, omite el moderado
+  var m=mkDropMail(st,a,wLbl); m.key=dropKey; inbox().unshift(m);
+  var matKey='mat|'+sid+'|global|drop';
+  if(!STU_INBOX.some(function(m){return m.key===matKey;})){
+    var mm=mkMatMail(st,a,wLbl); mm.key=matKey; STU_INBOX.unshift(mm);
+  }
+} else if(dropLevel === 1 && !hasKey(dropLowKey)){
+  // Bajón moderado: solo si NO es crítico
+  var m=mkDropLowMail(st,a,wLbl); m.key=dropLowKey; inbox().unshift(m);
+  var matKey='mat|'+sid+'|global|droplow';
+  if(!STU_INBOX.some(function(m){return m.key===matKey;})){
+    var mm=mkMatMail(st,a,wLbl); mm.key=matKey; STU_INBOX.unshift(mm);
+  }
+}
+// Progresión natural: si moderado ya existía y el bajón se vuelve crítico,
+// el `if` del crítico dispara igual porque dropKey todavía no existe.
+    });
+  });
+}
+// 3 faltas — riesgo
+function mkAbsRiskMail(st,a,wLbl){
+  return{color:'purple',av:'🔴',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,
+  subj:'⚠️ Riesgo por inasistencias — '+st.name,tag:'inasistencia',tagLbl:'Inasistencia',stuName:st.name,btn:null,
+  body:'<p><b>'+st.name+'</b> acumula <b>3 inasistencias</b> en <b>'+a.course+'</b>.</p><div class="hbox warn">⚠️ Con 5 inasistencias el estudiante pierde la materia automáticamente.</div>'};
+}
+function mkAbsRiskMailStu(st,a,wLbl){
+  return{color:'purple',av:'🔴',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,
+  subj:'⚠️ Riesgo por inasistencias',tag:'inasistencia',tagLbl:'Inasistencia',stuName:st.name,btn:null,
+  body:'<p>Acumulas <b>3 inasistencias</b> en <b>'+a.course+'</b>.</p><div class="hbox warn">⚠️ Si llegas a 5 inasistencias perderás la materia automáticamente.</div>'};
+}
+
+// 4 faltas — crítico
+function mkAbsCritMail(st,a,wLbl){
+  return{color:'purple',av:'🔴',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,
+  subj:'🚨 Inasistencias críticas — '+st.name,tag:'inasistencia',tagLbl:'Inasistencia crítica',stuName:st.name,btn:null,
+  body:'<p><b>'+st.name+'</b> acumula <b>4 inasistencias</b> en <b>'+a.course+'</b>.</p><div class="hbox danger">🚨 Una inasistencia más y el estudiante perderá la materia automáticamente.</div>'};
+}
+function mkAbsCritMailStu(st,a,wLbl){
+  return{color:'purple',av:'🔴',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,
+  subj:'🚨 Inasistencias críticas',tag:'inasistencia',tagLbl:'Inasistencia crítica',stuName:st.name,btn:null,
+  body:'<p>Acumulas <b>4 inasistencias</b> en <b>'+a.course+'</b>.</p><div class="hbox danger">🚨 Una inasistencia más y perderás la materia automáticamente.</div>'};
+}
+
+// 5 faltas — perdida
+function mkAbsLostMailDoc(st,a,wLbl){
+  return{color:'purple',av:'🔴',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,
+  subj:'🔴 Pérdida por inasistencias — '+st.name,tag:'inasistencia',tagLbl:'Pérdida',stuName:st.name,btn:null,
+  docOnly:true, // ← solo para el profesor
+  body:'<p><b>'+st.name+'</b> ha acumulado <b>5 inasistencias</b> en <b>'+a.course+'</b>.</p><div class="hbox danger">🔴 El estudiante ha perdido la materia por inasistencias según reglamento.</div>'};
+}
+function mkAbsLostMailStu(st,a,wLbl){
+  return{color:'purple',av:'🔴',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,
+  subj:'🔴 Has perdido la materia por inasistencias',tag:'inasistencia',tagLbl:'Pérdida',stuName:st.name,btn:null,
+  body:'<p>Has acumulado <b>5 inasistencias</b> en <b>'+a.course+'</b>.</p><div class="hbox danger">🔴 Has perdido la materia automáticamente por inasistencias según el reglamento académico.</div>'};
+}
+function mkProjMail(st,a,wLbl){var pr=project(st.id);return{color:'orange',av:'🚨',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,subj:'🚨 Proyección de pérdida — '+st.name,tag:'alerta',tagLbl:'Alerta',stuName:st.name,btn:'Agendar acompañamiento',body:'<p><b>'+st.name+'</b> proyecta nota <b>'+pr.toFixed(2)+'</b> si la tendencia continúa.</p><div class="hbox danger">🚨 Proyección: '+pr.toFixed(2)+' (mínimo 3.0)</div><b>Últimas actividades:</b>'+gTable(recentG(st.id))};}
+function mkLowMail(st,a,wLbl){return{color:'orange',av:'⚠️',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,subj:'⚠️ Alerta temprana — 2 notas bajas · '+st.name,tag:'alerta',tagLbl:'Alerta temprana',stuName:st.name,btn:'Agendar acompañamiento',body:'<p>2 actividades consecutivas con nota < 3.0 para <b>'+st.name+'</b>.</p><div class="hbox warn">⚠️ Alerta preventiva — el estudiante puede revertir la situación.</div>'+gTable(recentG(st.id))};}
+function mkDropMail(st,a,wLbl){
+  var all=[];for(var w=1;w<=16;w++)DATA[st.id].weeks[w].acts.forEach(function(act){if(act.grade!==null)all.push(act.grade);});
+  var diff=all.length>=4?((all[0]+all[1])/2-(all[all.length-2]+all[all.length-1])/2).toFixed(2):0;
+  return{color:'orange',av:'📉',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,subj:'🚨 Caída crítica en rendimiento — '+st.name,tag:'alerta',tagLbl:'Alerta crítica',stuName:st.name,btn:'Agendar acompañamiento',body:'<p>Caída de <b>'+diff+' puntos</b> detectada para <b>'+st.name+'</b>.</p><div class="hbox danger">🚨 Caída crítica — requiere intervención inmediata.</div>'+gTable(recentG(st.id))};
+}
+function mkDropLowMail(st,a,wLbl){
+  var all=[];for(var w=1;w<=16;w++)DATA[st.id].weeks[w].acts.forEach(function(act){if(act.grade!==null)all.push(act.grade);});
+  var diff=all.length>=4?((all[0]+all[1])/2-(all[all.length-2]+all[all.length-1])/2).toFixed(2):0;
+  return{color:'orange',av:'⚠️',avc:'sys',stuId:st.id,sender:'Sistema SMA',email:'sistema@sma.edu.co',when:wLbl,subj:'⚠️ Bajón en rendimiento — '+st.name,tag:'alerta',tagLbl:'Alerta',stuName:st.name,btn:'Agendar acompañamiento',body:'<p>Caída de <b>'+diff+' puntos</b> detectada para <b>'+st.name+'</b>.</p><div class="hbox warn">⚠️ Bajón moderado — conviene hacer seguimiento preventivo.</div>'+gTable(recentG(st.id))};
+}
+function mkMatMail(st,a,wLbl){
+  return{color:'green',av:'📚',avc:'prof',stuId:st.id,sender:a.name+' (Docente)',email:a.course.toLowerCase().replace(/\s+/g,'.')+'.mat@udes.edu.co',when:wLbl,subj:'📦 Material de apoyo — '+a.course+' · '+st.name,tag:'material',tagLbl:'Material',stuName:st.name,btn:'Solicitar asesoría',body:'<p>Estimado/a <b>'+st.name+'</b>,</p><p>En respuesta a la alerta del sistema, te enviamos material de estudio para <b>'+a.course+'</b>.</p><div class="hbox info">📖 Guía de estudio · 🎯 Ejercicios · 📅 Cronograma sugerido · 🎬 Videos de apoyo</div><div class="hbox ok">💡 Sesiones de tutoría gratuitas disponibles con el monitor asignado.</div><p><em>'+a.name+'</em></p>'};
+}
+// ══ AFTER CHANGE ══════════════════════════════════════════════════
+function afterChange(){
+  genAlerts(); updateBadge(); updateStuBadge();
+  if(isStu&&stuCurTab==='notas') renderStuNotas();
+}
+function updateBadge(){
+  var n=inbox().filter(function(m){return !m.readDoc;}).length;
+  var b=document.getElementById('tb-badge'),b2=document.getElementById('sn-badge');
+  if(b){if(n>0){b.style.display='inline';b.textContent=n;}else b.style.display='none';}
+  if(b2){if(n>0){b2.style.display='inline';b2.textContent=n;}else b2.style.display='none';}
+}
+
+function updateStuBadge(){
+  if(!stuId)return;
+  var si=stuInbox();
+  var n=si.filter(function(m){return !m.readStu;}).length;
+  var b2=document.getElementById('stu-badge2');
+  if(b2){if(n>0){b2.style.display='inline';b2.textContent=n;}else b2.style.display='none';}
+  var tb=document.getElementById('sn-stu-buzon');
+  if(tb){tb.innerHTML='📧 Mi Buzón'+(n>0?' <span class="tn-badge-count" style="position:relative;top:-1px;margin-left:4px;">'+n+'</span>':'');}
+}
+// ══ MODAL AGENDAR ═════════════════════════════════════════════════
+function openAg(name){document.getElementById('ag-stu').value=name;document.getElementById('ag-date').value='';document.getElementById('ag-msg').value='';document.getElementById('modal-ag').classList.add('open');}
+function closeAg(){document.getElementById('modal-ag').classList.remove('open');}
+function confirmAg(){
+  var dateVal = document.getElementById('ag-date').value;
+  var errEl   = document.getElementById('ag-err');
+  var dateInp = document.getElementById('ag-date');
+  if(!dateVal){
+    errEl.textContent = 'Por favor selecciona una fecha.';
+    dateInp.style.borderColor = 'var(--red)';
+    return;
+  }
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var sel = new Date(dateVal + 'T00:00:00');
+  if(sel < hoy){
+    errEl.textContent = 'La fecha no puede ser en el pasado.';
+    dateInp.style.borderColor = 'var(--red)';
+    return;
+  }
+  errEl.textContent = '';
+  dateInp.style.borderColor = '';
+  closeAg();
+  var t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
+// ══ TUTORIAL ══════════════════════════════════════════════════════
+function openTutorial(){document.getElementById('tut-modal').classList.add('open');}
+function closeTutorial(){document.getElementById('tut-modal').classList.remove('open');}
+
+// ══ UTILS ═════════════════════════════════════════════════════════
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// ==================== FUNCIONES CORREGIDAS / AGREGADAS ====================
+// Estas funciones arreglan el problema de agregar tareas, notas e inasistencias
+
+function initData(a) {
+  if (!DATA) DATA = {};
+  a.students.forEach(function(st) {
+    if (!DATA[st.id]) {
+      DATA[st.id] = { weeks: {}, parciales: {} };
+      for (var w = 1; w <= 16; w++) {
+        DATA[st.id].weeks[w] = { acts: [], absent: false };
+      }
+      CORTES.forEach(function(c) {
+        DATA[st.id].parciales[c.id] = null;
+      });
+    }
+  });
+}
+
+function getCorteObjForWeek(w) {
+  for (var i = 0; i < CORTES.length; i++) {
+    if (CORTES[i].weeks.indexOf(w) >= 0 || CORTES[i].parcial === w) {
+      return CORTES[i];
+    }
+  }
+  return null;
+}
+
+function togAbs(el) {
+  var sid = el.dataset.sid;
+  var w = parseInt(el.dataset.w);
+  DATA[sid].weeks[w].absent = !DATA[sid].weeks[w].absent;
+  afterChange();
+  buildSemActs(curWeek, CORTES.some(function(c){return c.parcial===curWeek;}), getCorteObjForWeek(curWeek));
+}
+
+function parcialInp(inp) {
+  var sid = inp.dataset.sid;
+  var cid = inp.dataset.cid;
+  var val = inp.value.trim() === '' ? null : parseFloat(inp.value);
+if (isNaN(val)) val = null;
+if (val !== null){
+  if(val > 5){ val = 5; inp.value = 5; }
+  if(val < 0){ val = 0; inp.value = 0; }
+}
+  DATA[sid].parciales[cid] = val;
+  afterChange();
+  buildSemActs(curWeek, CORTES.some(function(c){return c.parcial===curWeek;}), getCorteObjForWeek(curWeek));
+}
+
+function bindSemEvents() {
+  document.querySelectorAll('.act-name-inp').forEach(function(inp) {
+    inp.addEventListener('input', function() {
+      var sid = this.dataset.sid;
+      var w = parseInt(this.dataset.w);
+      var ai = parseInt(this.dataset.ai);
+      DATA[sid].weeks[w].acts[ai].name = this.value;
+      afterChange();
+    });
+  });
+
+  document.querySelectorAll('.act-grade').forEach(function(inp) {
+    inp.addEventListener('input', function() {
+      var sid = this.dataset.sid;
+      var w = parseInt(this.dataset.w);
+      var ai = parseInt(this.dataset.ai);
+      var val = this.value.trim() === '' ? null : parseFloat(this.value);
+if (isNaN(val)) val = null;
+if (val !== null){
+  if(val > 5){ val = 5; this.value = 5; }
+  if(val < 0){ val = 0; this.value = 0; }
+}
+
+      DATA[sid].weeks[w].acts[ai].grade = val;
+
+      this.className = this.className.replace(/ g[hml]/g, '');
+      if (val !== null) {
+        if (val >= 4) this.classList.add('gh');
+        else if (val >= 3) this.classList.add('gm');
+        else this.classList.add('gl');
+      }
+      afterChange();
+    });
+  });
+
+  document.querySelectorAll('.del-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var sid = this.dataset.sid;
+      var w = parseInt(this.dataset.w);
+      var ai = parseInt(this.dataset.ai);
+      DATA[sid].weeks[w].acts.splice(ai, 1);
+      afterChange();
+      buildSemActs(curWeek, CORTES.some(function(c){return c.parcial===curWeek;}), getCorteObjForWeek(curWeek));
+    });
+  });
+}
+
+// Reforzamos buildSemActs para que siempre funcione
+var originalBuildSemActs = typeof buildSemActs === 'function' ? buildSemActs : function(){};
+buildSemActs = function(w, isParcial, corteObj) {
+  originalBuildSemActs(w, isParcial, corteObj);
+  setTimeout(bindSemEvents, 150);
+};
+</script>
+</body>
+</html>
